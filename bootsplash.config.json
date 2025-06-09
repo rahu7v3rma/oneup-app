@@ -1,0 +1,8 @@
+{
+    "logo": "./assets/boot_splash.svg",
+    "backgroundColor": "#ffffff",
+    "logoWidth": 200,
+    "assetsPath": "android/app/src/main/res",
+    "flavor": "main"
+  }
+  

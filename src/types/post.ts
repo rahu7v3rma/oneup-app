@@ -1,0 +1,22 @@
+export type PostDetails = {
+  id: number;
+  api_id: string;
+  title: string;
+  likesCount: string;
+  tweet_id: number;
+  tweet_url: string;
+  published_timestamp: string;
+  profile_image_url: string;
+  text_body: string;
+  username: string;
+  content_type: 'video' | 'photo';
+  video_url: string | null;
+  image_url: string | null;
+  screen_name: string;
+  aspect_ratio: string;
+  duration_ms: number;
+  sport: string;
+  created_at: string;
+  is_like: boolean;
+  likes_count: number;
+};

@@ -1,0 +1,17 @@
+export const Fonts = {
+  InterLight:'Inter-Light',
+  InterRegular:'Inter-Regular',
+  InterMedium:'Inter-Medium',
+  InterSemiBold:'Inter-SemiBold',
+  InterBold:'Inter-Bold',
+  RobotoLight: 'Roboto-Light',
+  RobotoRegular: 'Roboto-Regular',
+  RobotoMedium: 'Roboto-Medium',
+  RobotoSemiBold: 'Roboto-SemiBold',
+  RobotoBold: 'Roboto-Bold',
+  WorkSansLight: 'WorkSans-Light',
+  WorkSansRegular: 'WorkSans-Regular',
+  WorkSansMedium: 'WorkSans-Medium',
+  WorkSansSemiBold: 'WorkSans-SemiBold',
+  WorkSansBold: 'WorkSans-Bold',
+};
