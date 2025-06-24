@@ -17,27 +17,19 @@ import { useThemeStyles } from '../theme/ThemeStylesProvider';
 interface Props {
   name: string;
   placeHolder: string;
-  minimumDate: Date;
 }
 
-const DateInputField = ({ name, placeHolder, minimumDate }: Props) => {
+const DateInputField = ({ name, placeHolder }: Props) => {
   const [field, meta, helpers] = useField(name);
   const { themeColors } = useTheme();
   const themeStyles = useThemeStyles();
   const [showPicker, setShowPicker] = useState(false);
-  const [pickerDate, setPickerDate] = useState(new Date());
 
   const handleChange = (_event: any, selectedDate?: Date) => {
+    setShowPicker(false);
     if (selectedDate) {
-      setPickerDate(selectedDate);
-      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-      const day = String(selectedDate.getDate()).padStart(2, '0');
-      const year = selectedDate.getFullYear();
-      const formattedDate = `${month}/${day}/${year}`;
-      helpers.setValue(formattedDate);
-      if (Platform.OS === 'android') {
-        setShowPicker(false);
-      }
+      const formatted = `${String(selectedDate.getMonth() + 1).padStart(2, '0')}/${String(selectedDate.getDate()).padStart(2, '0')}/${selectedDate.getFullYear()}`;
+      helpers.setValue(formatted);
     }
   };
 
@@ -90,11 +82,11 @@ const DateInputField = ({ name, placeHolder, minimumDate }: Props) => {
 
       {showPicker && (
         <DateTimePicker
-          value={pickerDate}
+          value={field.value ? new Date(field.value) : new Date()}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleChange}
-          maximumDate={minimumDate}
+          maximumDate={new Date()}
           textColor={themeColors.text}
         />
       )}

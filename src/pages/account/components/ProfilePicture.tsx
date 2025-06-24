@@ -10,6 +10,7 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 
 import { Edit } from '../../../../assets/svgs';
+import { COMMON } from '../../../utils/common';
 
 type ProfilePictureProps = {
   imageUri: string;
@@ -44,7 +45,7 @@ export default function ProfilePicture({
         const asset = response.assets?.[0];
         if (asset && asset.uri) {
           setSelectedImage(asset.uri);
-          
+
           // Pass the complete asset object to the parent component
           // This includes uri, type, fileName, etc.
           onChangeImage?.(asset);
@@ -53,9 +54,20 @@ export default function ProfilePicture({
     );
   };
 
+  const getImageSource = () => {
+    // If the image is a local file URI (starts with file://), use it directly
+    if (selectedImage?.startsWith('file://')) {
+      return { uri: selectedImage };
+    }
+    // If the image is from the server, prepend the base URL
+    return {
+      uri: selectedImage ? `${COMMON.imageBaseUrl}${selectedImage}` : undefined,
+    };
+  };
+
   return (
     <View style={containerStyle}>
-      <Image style={styles.profileImage} source={{ uri: selectedImage }} />
+      <Image style={styles.profileImage} source={getImageSource()} />
       <TouchableOpacity style={styles.editIcon} onPress={onEditProfilePicture}>
         <Edit />
       </TouchableOpacity>

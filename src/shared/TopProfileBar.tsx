@@ -3,10 +3,11 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useContext } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
-import BackButton from '../shared/backButton';
-import { useThemeStyles } from '../theme/ThemeStylesProvider';
 import { AuthContext } from '../context/authContext';
-import { BaseURLForImages } from '../api/utils/api-client';
+import { useThemeStyles } from '../theme/ThemeStylesProvider';
+import { COMMON } from '../utils/common';
+
+import BackButton from './backButton';
 
 type TopNavbarProps = {
   label?: string;
@@ -40,7 +41,7 @@ const TopProfileBar = (props: TopNavbarProps) => {
   } = props;
   const styles = useThemeStyles();
   const navigation = useNavigation();
-  const {user} = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   return (
     <View
       style={[
@@ -75,10 +76,18 @@ const TopProfileBar = (props: TopNavbarProps) => {
             style={styles.textMuted}
           />
         </TouchableOpacity>
-        <TouchableOpacity onPress={()=>onProfilePress? onProfilePress() : navigation.navigate('SetttingsNav'as never)}>
+        <TouchableOpacity
+          onPress={() =>
+            onProfilePress
+              ? onProfilePress()
+              : navigation.navigate('SetttingsNav' as never)
+          }
+        >
           <Image
             source={
-               user?.avatar? {uri: BaseURLForImages + user?.avatar} : require('../../assets/images/default-profile-image.png') 
+              user?.avatar
+                ? { uri: `${COMMON.imageBaseUrl}${user.avatar}` }
+                : require('../../assets/images/default-profile-image.png')
             }
             width={36}
             height={36}

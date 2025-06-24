@@ -1,11 +1,12 @@
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import { Formik } from 'formik';
-import { View, Text, StyleSheet } from 'react-native';
 import { useContext } from 'react';
-import * as Yup from 'yup';
+import { View, Text, StyleSheet } from 'react-native';
 import Toast from 'react-native-toast-message';
+import * as Yup from 'yup';
 
+import { AuthContext } from '../../context/authContext';
 import { RootNavigationProp } from '../../navigation';
 import Button from '../../shared/button';
 import InputField from '../../shared/inputField';
@@ -13,7 +14,6 @@ import PageLayout from '../../shared/pageLayout';
 import { ThemeColors } from '../../theme/colors';
 import { Fonts } from '../../theme/fonts';
 import { useTheme } from '../../theme/ThemeProvider';
-import { AuthContext } from '../../context/authContext';
 
 const ChangePasswordSchema = Yup.object().shape({
   oldPassword: Yup.string().required('Please enter your old password'),
@@ -59,8 +59,11 @@ const ChangePassword = () => {
     confirmPassword: string;
   }) => {
     try {
-      const success = await changePassword(values.oldPassword, values.newPassword);
-      
+      const success = await changePassword(
+        values.oldPassword,
+        values.newPassword,
+      );
+
       if (success) {
         // If password change was successful, navigate back
         navigation.goBack();
@@ -92,26 +95,26 @@ const ChangePassword = () => {
           const oldPassword = values.oldPassword;
           const password = values.newPassword;
           const confirmPassword = values.confirmPassword;
-          console.log('this is the old password ', oldPassword)
-          console.log('This ia the new password ', password)
-          console.log('this is the confirm password ', confirmPassword)
+          console.log('this is the old password ', oldPassword);
+          console.log('This ia the new password ', password);
+          console.log('this is the confirm password ', confirmPassword);
           // Password validation rules
           const rules = {
-            hasLetter: { 
-              label: 'One letter', 
-              valid: /[A-Za-z]/.test(password) 
+            hasLetter: {
+              label: 'One letter',
+              valid: /[A-Za-z]/.test(password),
             },
-            hasNumber: { 
-              label: 'One number', 
-              valid: /[0-9]/.test(password) 
+            hasNumber: {
+              label: 'One number',
+              valid: /[0-9]/.test(password),
             },
-            hasSpecialCharacter: { 
-              label: 'Special Character', 
-              valid: /[^A-Za-z0-9]/.test(password) 
+            hasSpecialCharacter: {
+              label: 'Special Character',
+              valid: /[^A-Za-z0-9]/.test(password),
             },
-            has8Characters: { 
-              label: '8 Character Minimum', 
-              valid: password.length >= 8 
+            has8Characters: {
+              label: '8 Character Minimum',
+              valid: password.length >= 8,
             },
           };
           console.log(rules);
@@ -120,7 +123,8 @@ const ChangePassword = () => {
             !rules.hasLetter.valid ||
             !rules.hasNumber.valid ||
             !rules.hasSpecialCharacter.valid ||
-            !rules.has8Characters.valid || !(password === confirmPassword);
+            !rules.has8Characters.valid ||
+            !(password === confirmPassword);
 
           return (
             <View style={styles.container}>
@@ -138,7 +142,7 @@ const ChangePassword = () => {
                   placeholder="Password"
                   secureTextEntry={true}
                   onChange={handleChange('newPassword')}
-                  containerStyle={{ marginBottom: 14 }}
+                  containerStyle={styles.newPassword}
                 />
                 <InputField
                   name="confirmPassword"
@@ -150,30 +154,30 @@ const ChangePassword = () => {
                   onChange={handleChange('confirmPassword')}
                 />
               </View>
-              
+
               <View style={styles.passwordStrengthContainer}>
                 <View style={styles.passwordStrengthColumn}>
-                  <PasswordStrengthItem 
-                    valid={rules.hasLetter.valid} 
-                    text={rules.hasLetter.label} 
+                  <PasswordStrengthItem
+                    valid={rules.hasLetter.valid}
+                    text={rules.hasLetter.label}
                   />
-                  <PasswordStrengthItem 
-                    valid={rules.hasNumber.valid} 
-                    text={rules.hasNumber.label} 
+                  <PasswordStrengthItem
+                    valid={rules.hasNumber.valid}
+                    text={rules.hasNumber.label}
                   />
                 </View>
                 <View style={styles.passwordStrengthColumn}>
-                  <PasswordStrengthItem 
-                    valid={rules.hasSpecialCharacter.valid} 
-                    text={rules.hasSpecialCharacter.label} 
+                  <PasswordStrengthItem
+                    valid={rules.hasSpecialCharacter.valid}
+                    text={rules.hasSpecialCharacter.label}
                   />
-                  <PasswordStrengthItem 
-                    valid={rules.has8Characters.valid} 
-                    text={rules.has8Characters.label} 
+                  <PasswordStrengthItem
+                    valid={rules.has8Characters.valid}
+                    text={rules.has8Characters.label}
                   />
                 </View>
               </View>
-              
+
               <Button
                 title="Save"
                 onPress={handleSubmit}
@@ -203,6 +207,7 @@ const createStyles = (themeColors: ThemeColors) => {
     newPasswordContainer: {
       marginTop: 20,
     },
+    newPassword: { marginBottom: 14 },
     passwordStrengthContainer: {
       marginTop: 20,
       flexDirection: 'row',

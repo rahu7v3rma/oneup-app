@@ -115,7 +115,7 @@ const AddBank: FunctionComponent<Props> = ({}: Props) => {
                     errorMessage={
                       touched.routingNumber ? errors.routingNumber : undefined
                     }
-                   numbersOnly={true}
+                    numbersOnly={true}
                   />
                 </View>
                 <View style={themeStyles.mb4}>
@@ -127,7 +127,7 @@ const AddBank: FunctionComponent<Props> = ({}: Props) => {
                     errorMessage={
                       touched.accountNumber ? errors.accountNumber : undefined
                     }
-                   numbersOnly={true}
+                    numbersOnly={true}
                   />
                 </View>
               </>

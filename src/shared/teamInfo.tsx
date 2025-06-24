@@ -1,10 +1,11 @@
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 import { Fonts } from '../theme/fonts';
 import { useThemeStyles } from '../theme/ThemeStylesProvider';
 import { Team } from '../types/match';
+import { renderLogo } from '../utils/logoRenderer';
 
 interface Props {
   team: Team;
@@ -12,9 +13,10 @@ interface Props {
 
 export const TeamInfo: React.FC<Props> = ({ team }) => {
   const themeStyles = useThemeStyles();
+
   return (
     <View style={styles.row}>
-      <Image source={team.logo} style={styles.logo} />
+      {renderLogo(team.logo, styles, 40, 38)}
       <View style={styles.innerContainer}>
         <View style={styles.nameRecord}>
           <Text
@@ -77,11 +79,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flex: 1,
   },
-  logo: {
+  teamLogo: {
     width: 40,
     height: 38,
     marginRight: 10,
     resizeMode: 'contain',
+  },
+  logoPlaceholder: {
+    width: 40,
+    height: 38,
+    marginRight: 10,
+    backgroundColor: '#ddd', // Optional: Add a background color
   },
   teamName: {
     fontFamily: Fonts.WorkSansRegular,

@@ -27,6 +27,7 @@ interface Props {
   containerStyle?: StyleProp<ViewStyle>;
   keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
   numbersOnly?: boolean;
+  hideRequiredMessage?: boolean;
 }
 
 const InputField = ({
@@ -42,6 +43,7 @@ const InputField = ({
   containerStyle,
   keyboardType = 'default',
   numbersOnly = false,
+  hideRequiredMessage = false,
 }: Props) => {
   const themeStyles = useThemeStyles();
   const { themeColors } = useTheme();
@@ -142,11 +144,13 @@ const InputField = ({
           )}
         </View>
       </View>
-      {meta.touched && meta.error && (
-        <Text style={[styles.errorText, themeStyles.errorText]}>
-          {meta.error}
-        </Text>
-      )}
+      {meta.touched &&
+        meta.error &&
+        (!hideRequiredMessage || !meta.error.includes('required')) && (
+          <Text style={[styles.errorText, themeStyles.errorText]}>
+            {meta.error}
+          </Text>
+        )}
     </View>
   );
 };

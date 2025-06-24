@@ -4,6 +4,7 @@ import Toast from 'react-native-toast-message';
 
 import AuthService from '../api/services/auth.service';
 import TokenService from '../api/services/token.service';
+import { streamChatService } from '../services/streamChat';
 
 interface User {
   email: string;
@@ -39,8 +40,15 @@ interface AuthContextType {
   forgotPassword: (email: string) => Promise<boolean>;
   verifyResetToken: (token: string) => Promise<boolean>;
   confirmResetPassword: (token: string, password: string) => Promise<boolean>;
-  changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
-  updateUser: (avatar: any, email: string, displayName: string) => Promise<boolean>;
+  changePassword: (
+    oldPassword: string,
+    newPassword: string,
+  ) => Promise<boolean>;
+  updateUser: (
+    avatar: any,
+    email: string,
+    displayName: string,
+  ) => Promise<boolean>;
 }
 
 // Update the default context value
@@ -74,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await AuthService.register(formattedData);
       console.log('this is the response dta', response.data);
       if (response.data && response.success) {
-        const { auth_token, ...userData} = response.data;
+        const { auth_token, ...userData } = response.data;
 
         await TokenService.setAuthToken(auth_token);
         await TokenService.setUserData(userData);
@@ -132,7 +140,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsOtpExempt(isExempt);
         await TokenService.setAuthToken(auth_token); // Changed from token to auth_token
         await TokenService.setUserData(userData);
-
         setUser(userData);
         setIsEmailVerified(true);
 
@@ -190,78 +197,77 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-const updateUser = async (
-  image: any | null,
-  email: string,
-  displayName: string
-): Promise<boolean> => {
-  try {
-    setLoading(true);
-    
-    const formData = new FormData();
-    
-    // Only append avatar if image exists
-    if (image) {
-      formData.append('avatar', {
-        uri: image.uri,
-        type: image.type || 'image/jpeg',
-        name: image.fileName || `avatar-${Date.now()}.jpg`,
-      } as any);
-    }
-    
-    // Always append email and display_name
-    formData.append('email', email);
-    formData.append('display_name', displayName);
-    
-    console.log('Sending form data:', formData);
-    
-    const response = await AuthService.updateUser(formData);
-    
-    if (response.data && response.success) {
-      // Make sure we're correctly updating the user state with the response data
-      const updatedUser = { ...user, ...response.data };
-      setUser(updatedUser);
-      await TokenService.setUserData(updatedUser);
+  const updateUser = async (
+    image: any | null,
+    email: string,
+    displayName: string,
+  ): Promise<boolean> => {
+    try {
+      setLoading(true);
+
+      const formData = new FormData();
+
+      // Only append avatar if image exists
+      if (image) {
+        formData.append('avatar', {
+          uri: image.uri,
+          type: image.type || 'image/jpeg',
+          name: image.fileName || `avatar-${Date.now()}.jpg`,
+        } as any);
+      }
+
+      // Always append email and display_name
+      formData.append('email', email);
+      formData.append('display_name', displayName);
+
+      console.log('Sending form data:', formData);
+
+      const response = await AuthService.updateUser(formData);
+
+      if (response.data && response.success) {
+        // Make sure we're correctly updating the user state with the response data
+        const updatedUser = { ...user, ...response.data };
+        setUser(updatedUser);
+        await TokenService.setUserData(updatedUser);
+
+        Toast.show({
+          type: 'success',
+          text1: 'Profile Updated',
+          text2: 'Your profile has been updated successfully',
+          position: 'top',
+          visibilityTime: 4000,
+        });
+        return true;
+      } else {
+        const errorMessage = response?.message || 'Failed to update profile';
+        Toast.show({
+          type: 'error',
+          text1: 'Update Failed',
+          text2: errorMessage,
+          position: 'top',
+          visibilityTime: 4000,
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Update profile error:', error);
+      const axiosError = error as AxiosError<any>;
+      const errorMessage =
+        axiosError.response?.data?.message ||
+        'An unexpected error occurred while updating your profile';
 
       Toast.show({
-        type: 'success',
-        text1: 'Profile Updated',
-        text2: 'Your profile has been updated successfully',
-        position: 'top',
-        visibilityTime: 4000,
-      });
-      return true;
-    } else {
-      const errorMessage = response?.message || 'Failed to update profile';
-      Toast.show({
         type: 'error',
-        text1: 'Update Failed',
+        text1: 'Update Error',
         text2: errorMessage,
         position: 'top',
         visibilityTime: 4000,
       });
       return false;
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Update profile error:', error);
-    const axiosError = error as AxiosError<any>;
-    const errorMessage =
-      axiosError.response?.data?.message ||
-      'An unexpected error occurred while updating your profile';
-
-    Toast.show({
-      type: 'error',
-      text1: 'Update Error',
-      text2: errorMessage,
-      position: 'top',
-      visibilityTime: 4000,
-    });
-    return false;
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const forgotPassword = async (email: string): Promise<boolean> => {
     try {
@@ -421,26 +427,49 @@ const updateUser = async (
     }
   };
 
- const changePassword = async (currentPassword: string, newPassword: string) => {
-  try {
-    const response = await AuthService.changePassword(currentPassword, newPassword);
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    try {
+      const response = await AuthService.changePassword(
+        currentPassword,
+        newPassword,
+      );
 
-    if (response.data && response.success) {
-      Toast.show({
-        type: 'success',
-        text1: 'Password Change Successful',
-        text2: 'Your password has been changed successfully.',
-        position: 'top',
-        visibilityTime: 4000,
-      });
+      if (response.data && response.success) {
+        Toast.show({
+          type: 'success',
+          text1: 'Password Change Successful',
+          text2: 'Your password has been changed successfully.',
+          position: 'top',
+          visibilityTime: 4000,
+        });
 
-      return true;
-    } else {
-      const errorMessage = response?.message || 'Password change failed';
+        return true;
+      } else {
+        const errorMessage = response?.message || 'Password change failed';
+
+        Toast.show({
+          type: 'error',
+          text1: 'Change Failed',
+          text2: errorMessage,
+          position: 'top',
+          visibilityTime: 4000,
+        });
+
+        return false;
+      }
+    } catch (error) {
+      console.error('Password change error:', error);
+      const axiosError = error as AxiosError<any>;
+      const errorMessage =
+        axiosError.response?.data?.message ||
+        'An error occurred during password change';
 
       Toast.show({
         type: 'error',
-        text1: 'Change Failed',
+        text1: 'Change Error',
         text2: errorMessage,
         position: 'top',
         visibilityTime: 4000,
@@ -448,29 +477,13 @@ const updateUser = async (
 
       return false;
     }
-  } catch (error) {
-    console.error('Password change error:', error);
-    const axiosError = error as AxiosError<any>;
-    const errorMessage =
-      axiosError.response?.data?.message ||
-      'An error occurred during password change';
-
-    Toast.show({
-      type: 'error',
-      text1: 'Change Error',
-      text2: errorMessage,
-      position: 'top',
-      visibilityTime: 4000,
-    });
-
-    return false;
-  }
-
- }
+  };
 
   const signOut = async () => {
     try {
       await TokenService.clearAllTokens();
+      console.log('Disconnecting from Stream Chat...');
+      await streamChatService.disconnectUser();
       setUser(null);
       setIsEmailVerified(false);
       setIsOtpExempt(false);
@@ -518,7 +531,7 @@ const updateUser = async (
         verifyResetToken,
         confirmResetPassword,
         changePassword,
-        updateUser
+        updateUser,
       }}
     >
       {children}

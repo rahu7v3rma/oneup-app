@@ -1,4 +1,4 @@
-import React, {FunctionComponent, useEffect, useRef} from 'react';
+import React, { FunctionComponent, useEffect, useRef } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -7,8 +7,9 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import {useThemeStyles} from '../theme/ThemeStylesProvider';
-import {useTheme} from '../theme/ThemeProvider';
+
+import { useTheme } from '../theme/ThemeProvider';
+import { useThemeStyles } from '../theme/ThemeStylesProvider';
 
 type Props = {
   value: boolean;
@@ -24,7 +25,7 @@ const ToggleSwitch: FunctionComponent<Props> = ({
   thumbStyle,
 }: Props) => {
   const themeStyles = useThemeStyles();
-  const {themeColors} = useTheme();
+  const { themeColors } = useTheme();
 
   const thumbPosition = useRef(new Animated.Value(value ? 1 : 0)).current;
 
@@ -52,14 +53,15 @@ const ToggleSwitch: FunctionComponent<Props> = ({
           backgroundColor: value ? themeColors.btnBG : themeColors.gray1,
         },
         trackStyle,
-      ]}>
+      ]}
+    >
       <Animated.View
         style={[
           styles.thumb,
           themeStyles.pAbsolute,
           {
             backgroundColor: themeColors.text,
-            transform: [{translateX: interpolatedThumbTranslate}],
+            transform: [{ translateX: interpolatedThumbTranslate }],
             borderColor: themeColors.appBG,
           },
           thumbStyle,

@@ -1,11 +1,11 @@
 // AddMoneyScreen.tsx
-import AccountCard from '@components/walletComponents/AccountCard';
-import AmountInputBox from '@components/walletComponents/AmountInputBox';
-import AmountSelector from '@components/walletComponents/AmountSelector';
-import DividerWithText from '@components/walletComponents/DivderWithText';
 import { useNavigation } from '@react-navigation/native';
 import Button from '@shared/button';
 import GooglePayButton from '@shared/googlePayButton';
+import AccountCard from '@shared/walletComponents/AccountCard';
+import AmountInputBox from '@shared/walletComponents/AmountInputBox';
+import AmountSelector from '@shared/walletComponents/AmountSelector';
+import DividerWithText from '@shared/walletComponents/DivderWithText';
 import React, { useState } from 'react';
 import { Text, StyleSheet, ScrollView, View, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

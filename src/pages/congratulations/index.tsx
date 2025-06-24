@@ -61,12 +61,12 @@ const Congratulations = () => {
             textStyle={themeStyles.textDefault}
             title="Go to Home"
             onPress={() => {
-                   navigation.dispatch(
-                     CommonActions.reset({
-                       index: 0,
-                       routes: [{ name: 'AppNavigator' }],
-                     }),
-                   );
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'AppNavigator' }],
+                }),
+              );
             }}
           />
         </View>

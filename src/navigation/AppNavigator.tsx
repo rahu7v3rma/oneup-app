@@ -13,8 +13,20 @@ import WalletNav from './walletNav/WalletNav';
 
 export type AppStackParamList = {
   Home: undefined;
-  GameChat: { gameId: string };
+  GameChat: {
+    gameId: string;
+    homeTeam: string;
+    awayTeam: string;
+    homeTeamLogo: string;
+    awayTeamLogo: string;
+    gameTime: string;
+    gameDate: string;
+    gameType: string;
+  };
   PostDetails: undefined;
+  Messages: undefined;
+  SetttingsNav: undefined;
+  WalletNav: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();

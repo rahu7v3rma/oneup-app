@@ -33,14 +33,14 @@ const upcomingGames = [
         name: 'WAS',
         logo: WashingtonCommandersLogo,
         record: '4-8',
-        points: ['-10', '040', '-340'],
+        points: [-10, 40, -340],
       },
       {
         id: 2,
         name: 'PHI',
         logo: PhiladelphiaEaglesLogo,
         record: '4-8',
-        points: ['-10', '040', '-340'],
+        points: [-10, 40, -340],
       },
     ],
   },
@@ -55,14 +55,14 @@ const upcomingGames = [
         name: 'WAS',
         logo: WashingtonCommandersLogo,
         record: '4-8',
-        points: ['-10', '040', '-340'],
+        points: [-10, 40, -340],
       },
       {
         id: 2,
         name: 'PHI',
         logo: PhiladelphiaEaglesLogo,
         record: '4-8',
-        points: ['-10', '040', '-340'],
+        points: [-10, 40, -340],
       },
     ],
   },
@@ -77,14 +77,14 @@ const upcomingGames = [
         name: 'WAS',
         logo: WashingtonCommandersLogo,
         record: '4-8',
-        points: ['-10', '040', '-340'],
+        points: [-10, 40, -340],
       },
       {
         id: 2,
         name: 'PHI',
         logo: PhiladelphiaEaglesLogo,
         record: '4-8',
-        points: ['-10', '040', '-340'],
+        points: [-10, 40, -340],
       },
     ],
   },
@@ -93,6 +93,8 @@ const upcomingGames = [
 const gameChats = [
   {
     id: 1,
+    team1: 'WAS',
+    team2: 'PHI',
     team1Logo: WCLogo,
     team2Logo: PELogo,
     title: 'Titans @ Falcons 1/12 1 pm',
@@ -104,6 +106,8 @@ const gameChats = [
   },
   {
     id: 2,
+    team1: 'WAS',
+    team2: 'PHI',
     team1Logo: WCLogo,
     team2Logo: PELogo,
     title: 'Titans @ Falcons 1/12 1 pm',
@@ -115,6 +119,8 @@ const gameChats = [
   },
   {
     id: 3,
+    team1: 'WAS',
+    team2: 'PHI',
     team1Logo: WCLogo,
     team2Logo: PELogo,
     title: 'Titans @ Falcons 1/12 1 pm',
@@ -126,6 +132,8 @@ const gameChats = [
   },
   {
     id: 4,
+    team1: 'WAS',
+    team2: 'PHI',
     team1Logo: WCLogo,
     team2Logo: PELogo,
     title: 'Titans @ Falcons 1/12 1 pm',
@@ -137,6 +145,4 @@ const gameChats = [
   },
 ];
 
-const registerMinimumAge = 15;
-
-export { gameRecapData, upcomingGames, gameChats, registerMinimumAge };
+export { gameRecapData, upcomingGames, gameChats };

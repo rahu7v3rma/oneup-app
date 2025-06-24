@@ -5,13 +5,13 @@ import React, { useContext } from 'react';
 import { StyleSheet, View } from 'react-native';
 import * as Yup from 'yup';
 
+import { AuthContext } from '../../context/authContext';
 import { RootStackParamList } from '../../navigation';
 import Button from '../../shared/button';
 import InputField from '../../shared/inputField';
 import PageLayout from '../../shared/pageLayout';
+
 import ProfilePicture from './components/ProfilePicture';
-import { AuthContext } from '../../context/authContext';
-import { BaseURLForImages } from '../../api/utils/api-client';
 
 export type RootNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -24,28 +24,31 @@ const AccountSchema = Yup.object().shape({
 
 const Account = () => {
   const navigation = useNavigation();
-  const {user, updateUser } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const [image, setImage] = React.useState<any | null>(null);
-  const onSaveChanges = async (values: { email: string; display_name: string }) => {
-     const success = await updateUser(image,values.email, values.display_name);
-     if (success) {
-      navigation.goBack(); 
+  const onSaveChanges = async (values: {
+    email: string;
+    display_name: string;
+  }) => {
+    const success = await updateUser(image, values.email, values.display_name);
+    if (success) {
+      navigation.goBack();
     }
   };
- const onChangeImage = (img: any) => {
+  const onChangeImage = (img: any) => {
     setImage(img);
   };
-  console.log('User:', user)
-const fetchedUser = {
-  email: user?.email || "Email",
-  display_name: user?.display_name || "Display Name",
-};
+  console.log('User:', user);
+  const fetchedUser = {
+    email: user?.email || 'Email',
+    display_name: user?.display_name || 'Display Name',
+  };
   return (
     <PageLayout title={'Account'} onBack={() => navigation.goBack()}>
       <ProfilePicture
         containerStyle={styles.profilePicture}
         onChangeImage={onChangeImage}
-        imageUri={user?.avatar? BaseURLForImages + user?.avatar : 'https://via.placeholder.com/150'}
+        imageUri={user?.avatar ?? ''}
       />
 
       <Formik<{ email: string; display_name: string }>

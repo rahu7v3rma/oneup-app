@@ -2,10 +2,10 @@ import Icon from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
 import { View, Image, StyleSheet, ScrollView } from 'react-native';
 
-import { GameStatus } from '../../components/GameStatus';
 import { GameStatusEnum } from '../../enums/gameStatus';
 import { ICommand } from '../../interfaces/comand.interface';
 import BackButton from '../../shared/backButton';
+import { GameStatus } from '../../shared/GameStatus';
 import { useThemeStyles } from '../../theme/ThemeStylesProvider';
 
 export function GamesPreviewsCard() {

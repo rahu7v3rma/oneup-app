@@ -178,7 +178,9 @@ export default {
   ml4: {
     marginLeft: 16,
   },
-
+  mln2: {
+    marginLeft: -8,
+  },
   mln4: {
     marginLeft: -16,
   },

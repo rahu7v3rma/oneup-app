@@ -1,14 +1,7 @@
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { Formik } from 'formik';
 import React, { FC, useContext, useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import * as Yup from 'yup';
 
 import AppLogoSmaller from '../../../assets/svgs/appLogoSmaller';
@@ -47,6 +40,10 @@ export const RegisterPage: FC = () => {
     email: '',
     nickname: '',
     password: '',
+    confirmPassword: '',
+    firstName: '',
+    lastName: '',
+    birthDay: '',
   };
 
   const validStates = ['NY', 'CA', 'TX', 'FL', 'WA'];
@@ -146,11 +143,11 @@ export const RegisterPage: FC = () => {
 
       // Format the data according to the backend's expected structure
       const formattedData = {
-        email: values.email.toLowerCase(),
+        email: values.email?.trim().toLowerCase(),
         password: values.password,
-        first_name: values.firstName,
-        last_name: values.lastName,
-        display_name: values.nickname,
+        first_name: values.firstName?.trim(),
+        last_name: values.lastName?.trim(),
+        display_name: values.nickname?.trim(),
         date_of_birth: formatDateForBackend(values.birthDay),
         phone_number: values.phone,
         address_1: values.address1,
@@ -215,58 +212,49 @@ export const RegisterPage: FC = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior="padding"
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 60}
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { backgroundColor: themeColors.appBG },
+      ]}
+      keyboardShouldPersistTaps="handled"
     >
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { backgroundColor: themeColors.appBG },
-        ]}
-        keyboardShouldPersistTaps="handled"
+      <BackButton
+        onPress={() => {
+          if (step > 1) {
+            setStep(step - 1);
+          } else {
+            navigation.goBack();
+          }
+        }}
+      />
+      <View style={styles.logo}>
+        <AppLogoSmaller />
+      </View>
+      <Formik
+        initialValues={initialValues}
+        onSubmit={handleFormSubmit}
+        validationSchema={getValidationSchema(step)}
       >
-        <BackButton
-          onPress={() => {
-            if (step > 1) {
-              setStep(step - 1);
-            } else {
-              navigation.goBack();
-            }
-          }}
-        />
-        <View style={styles.logo}>
-          <AppLogoSmaller />
-        </View>
-        <Formik
-          initialValues={initialValues}
-          onSubmit={handleFormSubmit}
-          validationSchema={getValidationSchema(step)}
-        >
-          {({ handleSubmit }) => (
-            <>
-              {step === 1 && <StepOne handleSubmit={handleSubmit} />}
-              {step === 2 && <StepTwo handleSubmit={handleSubmit} />}
-              {step === 3 && (
-                <StepThree
-                  handleSubmit={handleSubmit}
-                  states={validStates}
-                  isSubmitting={isSubmitting}
-                />
-              )}
-            </>
-          )}
-        </Formik>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        {({ handleSubmit }) => (
+          <>
+            {step === 1 && <StepOne handleSubmit={handleSubmit} />}
+            {step === 2 && <StepTwo handleSubmit={handleSubmit} />}
+            {step === 3 && (
+              <StepThree
+                handleSubmit={handleSubmit}
+                states={validStates}
+                isSubmitting={isSubmitting}
+              />
+            )}
+          </>
+        )}
+      </Formik>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
   logo: {
     zIndex: 1000,
     top: -20,

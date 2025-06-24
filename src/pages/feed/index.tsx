@@ -1,73 +1,164 @@
 import { useIsFocused } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import {
   FlatList,
   TouchableOpacity,
   View,
   ActivityIndicator,
   Text,
+  AppState,
+  ViewToken,
 } from 'react-native';
 
-import { fetchPosts, likePost, unlikePost } from '../../api/posts';
+import { fetchPosts } from '../../api/posts';
 import { Post } from '../../api/types';
-import FeedCard from '../../components/FeedCard';
-import TopProfileBar from '../../components/TopProfileBar';
+import { AuthContext } from '../../context/authContext';
 import { PostSelectors } from '../../reducers/post';
+import FeedCard from '../../shared/FeedCard';
+import TopProfileBar from '../../shared/TopProfileBar';
 import { useThemeStyles } from '../../theme/ThemeStylesProvider';
 
-export default function FeedsPage({ navigation }) {
+type OnViewableItemsChangedInfo = {
+  viewableItems: ViewToken[];
+  changed: ViewToken[];
+};
+
+type NavigationProp = {
+  navigate: (screen: string, params?: any) => void;
+};
+
+type FeedsPageProps = {
+  navigation: NavigationProp;
+};
+
+export default function FeedsPage({ navigation }: FeedsPageProps) {
+  const { user } = useContext(AuthContext);
   const [feedData, setFeedData] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
   const [hasNextPage, setHasNextPage] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const isFetching = useRef(false);
+  const isRefreshing = useRef(false);
   const limit = 10;
+
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const viewConfigRef = useRef({
+    viewAreaCoveragePercentThreshold: 80,
+    minimumViewTime: 250,
+  });
+
+  const onViewableItemsChanged = useRef<
+    (info: OnViewableItemsChangedInfo) => void
+  >(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      const topmost = viewableItems
+        .filter((v: ViewToken) => v.index != null)
+        .sort((a: ViewToken, b: ViewToken) => a.index! - b.index!)[0];
+      setPlayingId(topmost.item.id);
+    } else {
+      setPlayingId(null);
+    }
+  });
 
   const themeStyles = useThemeStyles();
   const { postDetails } = PostSelectors();
-
   const isFocused = useIsFocused();
 
   const loadPosts = async (currentPage: number) => {
     try {
-      setLoading(true);
-      const data = await fetchPosts(currentPage, limit);
-      setFeedData((prevData) => [...prevData, ...data.data.posts]); // Append new posts to existing data
-      setHasNextPage(data.data.has_next); // Update whether more pages are available
+      if (!isRefreshing.current) {
+        setLoading(true);
+      }
+
+      const response = await fetchPosts(currentPage, limit);
+
+      if (isRefreshing.current) {
+        setFeedData(response.data.posts);
+      } else {
+        setFeedData((prevData) => [...prevData, ...response.data.posts]);
+      }
+
+      setHasNextPage(response.data.has_next);
+      setError(null);
     } catch (err) {
       setError('Failed to load posts. Please try again later.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
+      isFetching.current = false;
+      isRefreshing.current = false;
     }
   };
 
+  // Refresh handler
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    isRefreshing.current = true;
+    setPage(1);
+    setError(null);
+    await loadPosts(1);
+  };
+
+  // Update feed data when post details change
   useEffect(() => {
     if (isFocused && postDetails) {
-      setFeedData((prevData) =>
-        prevData.map((post) =>
-          post.id === postDetails.id
-            ? {
-                ...post,
-                is_like: postDetails.is_like,
-                likes_count: postDetails.likes_count,
-              }
-            : post,
-        ),
+      setFeedData((prevData: Post[]) =>
+        prevData.map((post) => {
+          if (post.id === postDetails.id) {
+            // Update likes array and emoji counts
+            const updatedLikes = postDetails.likes || post.likes || [];
+            const updatedEmojiCounts = updatedLikes.reduce(
+              (acc, like) => {
+                acc[like.reaction_type] = (acc[like.reaction_type] || 0) + 1;
+                return acc;
+              },
+              {} as Record<string, number>,
+            );
+
+            return {
+              ...post,
+              is_like: !!updatedLikes.find(
+                (like) => like.user.email === user.email,
+              ),
+              likes_count: updatedLikes.length,
+              reaction_type: updatedLikes.find(
+                (like) => like.user.email === user.email,
+              )?.reaction_type,
+              emoji_counts: updatedEmojiCounts,
+              likes: updatedLikes,
+            };
+          }
+          return post;
+        }),
       );
     }
-  }, [isFocused, postDetails]);
+  }, [isFocused, postDetails, user.email]);
 
   useEffect(() => {
-    loadPosts(page);
+    if (!isRefreshing.current) {
+      loadPosts(page);
+    }
   }, [page]);
 
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') {
+        setPlayingId(null);
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
   const handleLoadMore = () => {
-    if (hasNextPage && !loading) {
-      setPage((prevPage) => prevPage + 1); // Increment the page number
+    if (hasNextPage && !loading && !isFetching.current && !refreshing) {
+      isFetching.current = true;
+      setPage((prevPage) => prevPage + 1);
     }
   };
 
-  if (loading && page === 1) {
+  if (loading && page === 1 && !refreshing) {
     return (
       <View
         style={[
@@ -80,7 +171,8 @@ export default function FeedsPage({ navigation }) {
       </View>
     );
   }
-  if (error) {
+
+  if (error && !refreshing) {
     return (
       <View
         style={[
@@ -104,6 +196,10 @@ export default function FeedsPage({ navigation }) {
       <FlatList
         data={feedData}
         keyExtractor={(item) => item.id.toString()}
+        viewabilityConfig={viewConfigRef.current}
+        onViewableItemsChanged={onViewableItemsChanged.current}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
         renderItem={({ item }) => (
           <View style={themeStyles.mv2}>
             <TouchableOpacity
@@ -113,46 +209,50 @@ export default function FeedsPage({ navigation }) {
             >
               <FeedCard
                 feedDetails={item}
-                onPressLike={async () => {
-                  const isLiked = item.is_like;
-                  const postId = item.id.toString();
-                  try {
-                    if (isLiked) {
-                      await unlikePost(postId);
-                      setFeedData((prevData) =>
-                        prevData.map((post) =>
-                          post.id === item.id
-                            ? {
-                                ...post,
-                                is_like: false,
-                                likes_count:
-                                  post.likes_count > 0
-                                    ? post.likes_count - 1
-                                    : 0,
-                                likes: post.likes.slice(
-                                  0,
-                                  post.likes.length - 1,
-                                ),
-                              }
-                            : post,
-                        ),
-                      );
-                    } else {
-                      const response = await likePost(postId);
-                      const updatedPost = response.data.post;
+                onPressLike={(isLiked, reactionType, reactionData) => {
+                  setFeedData((prevData: Post[]) =>
+                    prevData.map((post) => {
+                      if (post.id === item.id) {
+                        let updatedLikes = [...(post.likes || [])];
+                        const userReactionIndex = updatedLikes.findIndex(
+                          (like) => like.user.email === user.email,
+                        );
 
-                      setFeedData((prevData) =>
-                        prevData.map((post) =>
-                          post.id === item.id
-                            ? { ...post, ...updatedPost }
-                            : post,
-                        ),
-                      );
-                    }
-                  } catch (err) {
-                    console.error('Error toggling like:', err);
-                  }
+                        if (isLiked && reactionType && reactionData) {
+                          if (userReactionIndex !== -1) {
+                            updatedLikes[userReactionIndex] = reactionData;
+                          } else {
+                            updatedLikes.push(reactionData);
+                          }
+                        } else {
+                          if (userReactionIndex !== -1) {
+                            updatedLikes.splice(userReactionIndex, 1);
+                          }
+                        }
+
+                        const updatedEmojiCounts = updatedLikes.reduce(
+                          (acc, like) => {
+                            acc[like.reaction_type] =
+                              (acc[like.reaction_type] || 0) + 1;
+                            return acc;
+                          },
+                          {} as Record<string, number>,
+                        );
+
+                        return {
+                          ...post,
+                          is_like: isLiked,
+                          reaction_type: reactionType || undefined,
+                          likes: updatedLikes,
+                          likes_count: updatedLikes.length,
+                          emoji_counts: updatedEmojiCounts,
+                        };
+                      }
+                      return post;
+                    }),
+                  );
                 }}
+                isPlaying={isFocused && item.id.toString() === playingId}
               />
             </TouchableOpacity>
           </View>

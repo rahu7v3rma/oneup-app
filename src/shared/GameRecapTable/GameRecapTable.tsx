@@ -3,6 +3,7 @@ import { FlatList, ListRenderItem, View, StyleSheet, Text } from 'react-native';
 
 import { Fonts } from '../../theme/fonts';
 import { useTheme } from '../../theme/ThemeProvider';
+import { renderLogo } from '../../utils/logoRenderer';
 
 type TeamScore = {
   image: any;
@@ -22,7 +23,9 @@ export const GameRecapTable: React.FC<GameRecapTableProps> = ({ data }) => {
   const renderItem: ListRenderItem<TeamScore> = ({ item }) => (
     <View style={styles.row}>
       <View style={styles.leftBoxCard}>
-        <View style={styles.logoBox}>{item?.image}</View>
+        <View style={styles.teamLogo}>
+          {renderLogo(item.image, styles, 24, 24)}
+        </View>
         <Text style={[styles.teamText, { color: themeColors.textWhite }]}>
           {item?.teamName}
         </Text>
@@ -85,11 +88,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
-  logoBox: {
+  teamLogo: {
     height: 28,
     width: 28,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  logoPlaceholder: {
+    width: 24,
+    height: 24,
+    backgroundColor: '#ddd',
+    borderRadius: 4,
   },
   row: {
     flexDirection: 'row',

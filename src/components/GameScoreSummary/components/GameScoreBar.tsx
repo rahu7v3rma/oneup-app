@@ -1,6 +1,6 @@
 import { FlatList, StyleSheet, View } from 'react-native';
 
-import ScoreBar, { ScoreBarProps } from '../../../components/Scorebar';
+import ScoreBar, { ScoreBarProps } from '../../../shared/Scorebar';
 
 type Props = {
   data: ScoreBarProps[];
@@ -16,6 +16,7 @@ const GameScoreBar = ({ data }: Props) => {
         renderItem={({ item }: { item: ScoreBarProps }) => (
           <ScoreBar {...item} />
         )}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );

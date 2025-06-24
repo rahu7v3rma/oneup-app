@@ -15,11 +15,13 @@ import cardIcon from '../../assets/pngs/card.png';
 import paypalIcon from '../../assets/pngs/paypal.png';
 import venmoIcon from '../../assets/pngs/venmo.png';
 import { RootNavigationProp } from '../navigation';
-import { Button } from '../shared';
-import BottomSheet, { BottomSheetRef } from '../shared/bottomSheet';
 import { ThemeColors } from '../theme/colors';
 import { Fonts } from '../theme/fonts';
 import { useTheme } from '../theme/ThemeProvider';
+
+import BottomSheet, { BottomSheetRef } from './bottomSheet';
+
+import { Button } from '.';
 
 const paymentMethods: {
   icon: ImageSourcePropType;

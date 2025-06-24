@@ -2,11 +2,11 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { gameRecapData } from '../../constants';
 import {
   GameRecapTable,
   GameRecapTableHeader,
-} from '../../components/GameRecapTable';
-import { gameRecapData } from '../../constants';
+} from '../../shared/GameRecapTable';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const AfterGameRecap: React.FC = () => {

@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { Platform } from 'react-native';
 
+import { COMMON } from '../../utils/common';
 import AuthInterceptor from '../interceptors/auth-interceptor';
 
 // Create a platform interceptor to add platform=mobile to all requests
@@ -38,9 +39,4 @@ const createApiClient = (baseURL: string): AxiosInstance => {
   return client;
 };
 
-const API_BASE_URLS = {
-  account: 'http://127.0.0.1:8000',
-};
-
-export const AccountApiClient = createApiClient(API_BASE_URLS.account);
-export const BaseURLForImages = 'http://192.168.100.14:8000';
+export const AccountApiClient = createApiClient(COMMON.apiBaseUrl);

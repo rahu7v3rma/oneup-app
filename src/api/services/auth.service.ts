@@ -31,31 +31,41 @@ const AuthService = {
     return response;
   },
 
-updateUser: async (data: any) => {
-  try {
-    const response: AxiosResponse['data'] = await request.put(
-      AuthApiEndpoints.UPDATEUSER,
-      data,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+  updateUser: async (data: any) => {
+    try {
+      const response: AxiosResponse['data'] = await request.put(
+        AuthApiEndpoints.UPDATEUSER,
+        data,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         },
-      }
-    );
-    return response;
-  } catch (error) {
-    console.error('Error in updateUser:', error);
-    throw error;
-  }
-},
+      );
+      return response;
+    } catch (error) {
+      console.error('Error in updateUser:', error);
+      throw error;
+    }
+  },
 
   forgetPassword: async (email: string) => {
-    const response: AxiosResponse['data'] = await request.post(
-      AuthApiEndpoints.FORGETPASSWORD,
-      email,
-    );
-
-    return response;
+    try {
+      console.log('this is the email', email);
+      const response: AxiosResponse['data'] = await request.post(
+        AuthApiEndpoints.FORGETPASSWORD,
+        { email }, // Changed: wrap email in an object
+        {
+          headers: {
+            'Content-Type': 'application/json', // Added: ensure JSON content type
+          },
+        },
+      );
+      return response;
+    } catch (error) {
+      console.error('Error in forgetPassword:', error);
+      throw error;
+    }
   },
 
   verifyResetToken: async (token: string) => {
@@ -77,10 +87,7 @@ updateUser: async (data: any) => {
     return response;
   },
 
-  changePassword: async (
-    currentPassword: string,
-    newPassword: string,
-  ) => {
+  changePassword: async (currentPassword: string, newPassword: string) => {
     const response: AxiosResponse['data'] = await request.post(
       AuthApiEndpoints.CHANGEPASSWORD,
       {

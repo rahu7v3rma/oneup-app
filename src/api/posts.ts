@@ -2,26 +2,19 @@ import { AccountApiClient } from '../api/utils/api-client';
 import ApiRequest from '../api/utils/api-request';
 import { COMMON } from '../utils/common';
 
-import {
-  FetchPostsResponse,
-  LikePostResponse,
-  UnlikePostResponse,
-} from './types';
+import { ApiPostResponse, Post, PostDetails } from './types';
 
 const request = ApiRequest(AccountApiClient);
 
 /**
  * Fetches posts from the backend API.
- *
- * @returns {Promise<FetchPostsResponse>} A promise that resolves to the list of posts.
- * @throws {Error} If the API request fails.
  */
 export const fetchPosts = async (
   page: number,
   limit: number,
-): Promise<FetchPostsResponse> => {
+): Promise<{ data: { posts: Post[]; has_next: boolean } }> => {
   try {
-    const response = await request.get<FetchPostsResponse>(
+    const response = await request.get<ApiPostResponse>(
       `${COMMON.apiBaseUrl}post`,
       {
         params: { page, limit },
@@ -35,39 +28,41 @@ export const fetchPosts = async (
 };
 
 /**
- * Likes a post from the backend API.
- *
- * @returns {Promise<LikePostResponse>} A promise that resolves to the like object.
- * @throws {Error} If the API request fails.
+ * Reacts to a post with a specific emoji reaction type.
  */
-export const likePost = async (postId: string): Promise<LikePostResponse> => {
+export const reactToPost = async (
+  postId: string,
+  reactionType: string,
+): Promise<{ data: { post: PostDetails } }> => {
   try {
-    const response = await request.post<LikePostResponse>(
+    const response = await request.post<{ data: { post: PostDetails } }>(
       `${COMMON.apiBaseUrl}post/${postId}/like/`,
+      { reaction_type: reactionType },
     );
     return response;
   } catch (error) {
-    console.error('Error liking post:', error);
+    console.error('Error reacting to post:', error);
     throw error;
   }
 };
 
 /**
- * Unlikes a post from the backend API.
- *
- * @returns {Promise<UnlikePostResponse>} A promise that resolves to the unlike object.
- * @throws {Error} If the API request fails.
+ * Removes reaction from a post.
  */
-export const unlikePost = async (
+export const removeReaction = async (
   postId: string,
-): Promise<UnlikePostResponse> => {
+): Promise<{ data: { post: PostDetails } }> => {
   try {
-    const response = await request.delete<UnlikePostResponse>(
+    const response = await request.delete<{ data: { post: PostDetails } }>(
       `${COMMON.apiBaseUrl}post/${postId}/like/`,
     );
     return response;
   } catch (error) {
-    console.error('Error unliking post:', error);
+    console.error('Error removing reaction:', error);
     throw error;
   }
 };
+
+// Legacy functions for backward compatibility
+export const likePost = (postId: string) => reactToPost(postId, 'like');
+export const unlikePost = removeReaction;

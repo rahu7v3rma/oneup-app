@@ -1,8 +1,8 @@
-import AccountCard from '@components/walletComponents/AccountCard';
-import AmountInputBox from '@components/walletComponents/AmountInputBox';
 import { useNavigation } from '@react-navigation/native';
 import BackButton from '@shared/backButton';
 import Button from '@shared/button';
+import AccountCard from '@shared/walletComponents/AccountCard';
+import AmountInputBox from '@shared/walletComponents/AmountInputBox';
 import React, { useState } from 'react';
 import { Text, StyleSheet, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

@@ -8,13 +8,14 @@ import Svg, {
   type SvgProps,
 } from 'react-native-svg';
 
-const Paypal: React.FunctionComponent<SvgProps> = ({width, height}) => {
+const Paypal: React.FunctionComponent<SvgProps> = ({ width, height }) => {
   return (
     <Svg
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
-      fill="none">
+      fill="none"
+    >
       <Rect y="0.0200195" width={width} height={height} rx="2" fill="white" />
       <Rect
         x="7"
@@ -28,7 +29,8 @@ const Paypal: React.FunctionComponent<SvgProps> = ({width, height}) => {
           id="pattern0_1_92"
           patternContentUnits="objectBoundingBox"
           width="1"
-          height="1">
+          height="1"
+        >
           <Use xlinkHref="#image0_1_92" transform="scale(0.00195312)" />
         </Pattern>
         <Image

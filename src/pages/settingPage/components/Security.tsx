@@ -5,9 +5,9 @@ import { ScrollView } from 'react-native';
 import { BrandingWatermark } from '../../../../assets/svgs/settingSVGs/brandingWatermark.tsx';
 import { FingerPrint } from '../../../../assets/svgs/settingSVGs/fingerPrint.tsx';
 import ProfileIcon from '../../../../assets/svgs/settingSVGs/profileIcon.tsx';
-import { OptionsContainer } from '../../../components/OptionsContainer.tsx';
 import { ISettingInput } from '../../../interfaces/settingInput.interface.ts';
 import { RootNavigationProp } from '../../../navigation/settingNav/SettingNav.tsx';
+import { OptionsContainer } from '../../../shared/OptionsContainer.tsx';
 import { useTheme } from '../../../theme/ThemeProvider.tsx';
 
 export const Security: FC = () => {

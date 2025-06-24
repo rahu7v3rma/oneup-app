@@ -2,8 +2,8 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { ThemeColors } from 'theme/colors';
 
 import { useTheme } from '../../src/theme/ThemeProvider';
-import WeeklyCalendar from '../components/WeeklyCalendar';
 import { MatchCard } from '../shared/matchCard';
+import WeeklyCalendar from '../shared/WeeklyCalendar';
 
 const matches = [
   {

@@ -5,9 +5,10 @@ import { ThemeStyles } from 'styles';
 import Text from '../../../shared/text';
 import { Fonts } from '../../../theme/fonts';
 import { useThemeStyles } from '../../../theme/ThemeStylesProvider';
+import { renderLogo } from '../../../utils/logoRenderer';
 
-type ScoreItem = {
-  icon: () => React.JSX.Element;
+export type ScoreItem = {
+  logo: string | number;
   spread: string;
   total_points: string;
   money_line: string;
@@ -16,9 +17,12 @@ type ScoreItem = {
 const ScoreTable = ({ tableData }: { tableData: Array<ScoreItem> }) => {
   const themeStyles = useThemeStyles();
   const styles = getStyles(themeStyles);
+
   const renderItem = ({ item }: { item: ScoreItem }) => (
-    <View style={styles.tableHeader}>
-      <View style={styles.iconTitle}>{item.icon()}</View>
+    <View style={styles.tableRow}>
+      <View style={styles.iconTitle}>
+        {renderLogo(item.logo, styles, 24, 24)}
+      </View>
       <View style={styles.headerCell}>
         <Text style={styles.cellText}>{item.spread}</Text>
       </View>
@@ -32,32 +36,70 @@ const ScoreTable = ({ tableData }: { tableData: Array<ScoreItem> }) => {
   );
 
   return (
-    <View>
-      <View style={styles.tableContainer}>
-        <View style={styles.tableHeader}>
-          <Text style={styles.iconTitle}>{''}</Text>
-          <Text style={styles.headerTitle}>{'Spread'}</Text>
-          <Text style={styles.headerTitle}>{'Total Points'}</Text>
-          <Text style={styles.headerTitle}>{'Moneyline'}</Text>
-        </View>
-        <FlatList
-          data={tableData}
-          keyExtractor={(item) => item.spread.toString()}
-          renderItem={renderItem}
-        />
+    <View style={styles.tableContainer}>
+      <View style={styles.tableHeader}>
+        <Text style={styles.iconTitle}>{''}</Text>
+        <Text style={styles.headerTitle}>{'Spread'}</Text>
+        <Text style={styles.headerTitle}>{'Total Points'}</Text>
+        <Text style={styles.headerTitle}>{'Moneyline'}</Text>
       </View>
+      <FlatList
+        data={tableData}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };
 
 const getStyles = (themeStyles: ThemeStyles) =>
   StyleSheet.create({
-    cellText: {
+    tableContainer: {
+      ...themeStyles.card,
+      padding: 10,
+    },
+    logoContainer: {
+      width: 24,
+      height: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    tableHeader: {
+      flexDirection: 'row',
+      width: '100%',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    tableRow: {
+      flexDirection: 'row',
+      width: '100%',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    iconTitle: {
+      flex: 0.4,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    logoPlaceholder: {
+      width: 24,
+      height: 24,
+      backgroundColor: '#ddd',
+      borderRadius: 4,
+    },
+    teamLogo: {
+      width: 24,
+      height: 24,
+      resizeMode: 'contain',
+    },
+    headerTitle: {
+      flex: 1,
       fontSize: 8,
       lineHeight: 14,
-      fontFamily: Fonts.WorkSansMedium,
+      fontFamily: Fonts.RobotoMedium,
       textAlign: 'center',
-      fontWeight: 500,
+      fontWeight: '500',
     },
     headerCell: {
       flex: 1,
@@ -68,28 +110,13 @@ const getStyles = (themeStyles: ThemeStyles) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    iconTitle: {
-      flex: 0.4,
-    },
-    headerTitle: {
-      flex: 1,
+    cellText: {
       fontSize: 8,
       lineHeight: 14,
-      fontFamily: Fonts.RobotoMedium,
+      fontFamily: Fonts.WorkSansMedium,
       textAlign: 'center',
-      fontWeight: 500,
-    },
-    tableHeader: {
-      flexDirection: 'row',
-      width: '100%',
-      alignItems: 'center',
-      marginBottom: 3,
-    },
-    tableContainer: {
-      ...themeStyles.card,
-      padding: 10,
+      fontWeight: '500',
     },
   });
 
 export default ScoreTable;
-export type { ScoreItem };

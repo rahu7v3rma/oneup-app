@@ -1,7 +1,6 @@
 import Button from '@shared/button';
-import { useFormikContext } from 'formik';
 import { FC } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ThemeStyles } from 'styles';
 
 import InputField from '../../../shared/inputField';
@@ -47,28 +46,12 @@ export const StepThree: FC<IStepThree> = ({
 }) => {
   const themeStyle = useThemeStyles();
   const styles = getStyles(themeStyle);
-  const { setTouched, validateForm } = useFormikContext();
-
-  const onPressNextButton = async () => {
-    setTouched({
-      phone: true,
-      address1: true,
-      address2: true,
-      city: true,
-      state: true,
-      zipcode: true,
-    });
-    const errors = await validateForm();
-    if (!Object.keys(errors).length) {
-      handleSubmit();
-    }
-  };
 
   return (
-    <View style={styles.stepOneContainer}>
+    <ScrollView style={styles.stepOneContainer}>
       <Text style={styles.largeText}>Last little bit of info about you</Text>
       <View style={styles.formContainer}>
-        <InputField name="phone" placeholder="Phone Number" numbersOnly />
+        <InputField name="phone" placeholder="Phone Number" />
         <InputField name="address1" placeholder="Address 1" />
         <InputField name="address2" placeholder="Address 2" />
         <InputField name="city" placeholder="City" />
@@ -85,11 +68,11 @@ export const StepThree: FC<IStepThree> = ({
         <Button
           size="lg"
           title="Next"
-          onPress={onPressNextButton}
+          onPress={handleSubmit}
           loading={isSubmitting}
         />
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

@@ -2,9 +2,9 @@ import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { ReactNode, useCallback, useState } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 
-import { ThemeColors } from '../theme/colors';
-import { Fonts } from '../theme/fonts';
-import { useTheme } from '../theme/ThemeProvider';
+import { ThemeColors } from '../../../../theme/colors';
+import { Fonts } from '../../../../theme/fonts';
+import { useTheme } from '../../../../theme/ThemeProvider';
 
 const Accordion = ({
   items: itemsProp,

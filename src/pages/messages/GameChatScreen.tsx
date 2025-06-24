@@ -1,97 +1,58 @@
-import TopProfileBar from '@components/TopProfileBar';
-import Icon from '@react-native-vector-icons/ionicons';
-import { RouteProp } from '@react-navigation/native';
+import { RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import BackButton from '@shared/backButton';
-import React, { useRef, useState, useEffect } from 'react';
+import TopProfileBar from '@shared/TopProfileBar';
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useContext,
+} from 'react';
 import {
   View,
-  Text,
   StyleSheet,
-  TouchableOpacity,
-  Image,
   FlatList,
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  ImageSourcePropType,
   NativeSyntheticEvent,
   TextInputKeyPressEventData,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import uuid from 'react-native-uuid';
 
+import tokenService from '../../api/services/token.service';
+import GameChatActionMenu from '../../components/GameChat/components/GameChatActionMenu';
+import GameChatDivider from '../../components/GameChat/components/GameChatDivider';
+import GameChatGameInfo from '../../components/GameChat/components/GameChatGameInfo';
+import GameChatHeader from '../../components/GameChat/components/GameChatHeader';
+import GameChatList from '../../components/GameChat/components/GameChatList';
+import GameChatMessageInput from '../../components/GameChat/components/GameChatMessageInput';
+import { AuthContext } from '../../context/authContext';
+import { streamChatService } from '../../services/streamChat';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useThemeStyles } from '../../theme/ThemeStylesProvider';
-
-// Placeholder assets
-const userAvatar1 = require('../../../assets/images/user1.png');
-const userAvatar2 = require('../../../assets/images/user2.png');
-const team1Logo = require('../../../assets/pngs/philadelphia-eagles-logo.png');
-const team2Logo = require('../../../assets/pngs/washington-commanders-logo.png');
+import { Message } from '../../types/GameChat';
+import { COMMON } from '../../utils/common';
 
 type RootStackParamList = {
-  GameChat: { gameId: string };
+  GameChat: {
+    gameId: string;
+    homeTeam: string;
+    awayTeam: string;
+    homeTeamLogo: string;
+    awayTeamLogo: string;
+    gameTime: string;
+    gameDate: string;
+    gameType: string;
+  };
+  Messages: undefined;
 };
 
 type GameChatProps = {
   route: RouteProp<RootStackParamList, 'GameChat'>;
-  navigation: NativeStackNavigationProp<RootStackParamList, 'GameChat'>;
 };
-
-type Message = {
-  id: string;
-  avatar?: ImageSourcePropType;
-  text: string;
-  isMe: boolean;
-  likes?: number;
-  replyTo?: string;
-  replyText?: string;
-  dateSeparator?: string;
-  username?: string;
-};
-
-const mockMessages: Message[] = [
-  { id: 'date1', text: '', isMe: false, dateSeparator: 'Fri 3:42 PM' },
-  {
-    id: '1',
-    avatar: userAvatar1,
-    text: 'Keep the MO going brother!',
-    isMe: false,
-    username: 'Noobmaster',
-  },
-  {
-    id: '2',
-    avatar: userAvatar1,
-    text: 'This is another example of long text with two lines.',
-    isMe: false,
-    likes: 77,
-    username: 'Noobmaster',
-  },
-  { id: '3', text: 'Keep the MO going brother!', isMe: true },
-  {
-    id: '4',
-    text: 'This is another example of long text with two lines.',
-    isMe: true,
-  },
-  {
-    id: '5',
-    avatar: userAvatar2,
-    text: 'Keep the MO going brother!',
-    isMe: false,
-    username: 'BlitzASmallWorld',
-  },
-  {
-    id: '6',
-    avatar: userAvatar2,
-    text: 'This is another example of long text with two lines.',
-    isMe: false,
-    likes: 5,
-    replyTo: 'BlitzASmallWorld',
-    replyText: 'Keep the MO going brother!',
-    username: 'BlitzASmallWorld',
-  },
-];
 
 /**
  * A functional component that renders a game chat screen with real-time messaging capabilities.
@@ -101,6 +62,7 @@ const mockMessages: Message[] = [
  * - Message input with keyboard handling
  * - Auto-scrolling to latest messages
  * - Date separators for message grouping
+ * - Integration with Stream Chat for real-time messaging
  *
  * @returns {JSX.Element} A SafeAreaView containing the complete game chat interface
  */
@@ -110,37 +72,513 @@ const GameChatScreen: React.FC<GameChatProps> = ({ route }) => {
   const styles = createStyles(themeColors);
   const inputRef = useRef<TextInput>(null);
   const flatListRef = useRef<FlatList<any>>(null);
-  const { gameId } = route.params;
-
-  console.log(gameId);
-
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {
+    gameId,
+    homeTeam,
+    awayTeam,
+    homeTeamLogo,
+    awayTeamLogo,
+    gameTime,
+    gameDate,
+    gameType,
+  } = route.params;
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+  const currentUserRef = useRef<any>(null);
   // State for messages and input
-  const [messages, setMessages] = useState(mockMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [isConnecting, setIsConnecting] = useState(true);
+  const [channel, setChannel] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+
+  const [likingMessages, setLikingMessages] = useState<Set<string>>(new Set());
+
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [showActionMenu, setShowActionMenu] = useState(false);
+
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const messagesLength = messages.length;
+
+  const { user } = useContext(AuthContext);
+  const [isCheckingAvatar, setIsCheckingAvatar] = useState(false);
+  const lastSyncedAvatarRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    if (flatListRef.current) {
-      // Add a small delay to allow layout to update before scrolling
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format current date/time like in the UI
+  const formatDateTime = (date: Date) => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayName = days[date.getDay()];
+    const time = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return `${dayName} ${time}`;
+  };
+
+  const parseGameDateTime = (eventTime: string, eventDate: string): Date => {
+    try {
+      if (!eventTime || !eventDate) return new Date();
+
+      const year = new Date().getFullYear();
+      type MonthKey =
+        | 'JAN'
+        | 'FEB'
+        | 'MAR'
+        | 'APR'
+        | 'MAY'
+        | 'JUN'
+        | 'JUL'
+        | 'AUG'
+        | 'SEP'
+        | 'OCT'
+        | 'NOV'
+        | 'DEC';
+      const monthMap: Record<MonthKey, number> = {
+        JAN: 0,
+        FEB: 1,
+        MAR: 2,
+        APR: 3,
+        MAY: 4,
+        JUN: 5,
+        JUL: 6,
+        AUG: 7,
+        SEP: 8,
+        OCT: 9,
+        NOV: 10,
+        DEC: 11,
+      };
+
+      // Parse date
+      const dateMatch = eventDate.match(/([A-Z]{3}), ([A-Z]{3}) (\d+)/);
+      const [monthNum, day] = dateMatch
+        ? [monthMap[dateMatch[2] as MonthKey], parseInt(dateMatch[3], 10)]
+        : eventDate
+            .split('/')
+            .map((val, i) =>
+              i === 0 ? parseInt(val, 10) : parseInt(val, 10) - 1,
+            );
+
+      // Parse time
+      const [_, hours, minutes, period] =
+        eventTime.match(/(\d+):(\d+) (AM|PM)/) || [];
+      if (!hours || !minutes || !period) return new Date();
+
+      let h = parseInt(hours, 10);
+      h =
+        period === 'PM' && h !== 12
+          ? h + 12
+          : period === 'AM' && h === 12
+            ? 0
+            : h;
+
+      const date = new Date(year, monthNum, day, h, parseInt(minutes, 10));
+      return isNaN(date.getTime()) ? new Date() : date;
+    } catch (error) {
+      console.error('Error parsing game time:', error);
+      return new Date();
+    }
+  };
+
+  // Add a ref to store all messages for parent lookup
+  const allMessagesRef = useRef<Map<string, any>>(new Map());
+
+  // FIXED: Format messages with proper parent message lookup
+  const formatMessage = useCallback((msg: any, userInfo: any): Message => {
+    const isMe = msg.user.id === userInfo?.id;
+    const hasParent = !!msg.parent_id;
+
+    // Extract like information
+    const likeCount = msg.reaction_counts?.like || 0;
+    const userReactions = msg.own_reactions || [];
+    const isLiked = userReactions.some(
+      (reaction: any) => reaction.type === 'like',
+    );
+
+    let avatarUri;
+    if (msg.user.image) {
+      avatarUri = msg.user.image.startsWith('http')
+        ? msg.user.image
+        : `${COMMON.imageBaseUrl}${msg.user.image}`;
+    }
+
+    // Store this message for future parent lookups
+    allMessagesRef.current.set(msg.id, msg);
+
+    // Fix: Look up parent message from our stored messages
+    let replyReference, replyText;
+    if (hasParent) {
+      // First try to get parent from the message itself
+      let parentMsg = msg.parent_message || msg.parent || msg.quoted_message;
+
+      // If not found, look it up from our stored messages
+      if (!parentMsg && msg.parent_id) {
+        parentMsg = allMessagesRef.current.get(msg.parent_id);
+        console.log(
+          'Looking up parent from stored messages:',
+          msg.parent_id,
+          parentMsg,
+        );
+      }
+
+      if (parentMsg) {
+        replyReference =
+          parentMsg.user?.name ||
+          parentMsg.user?.display_name ||
+          parentMsg.user?.id ||
+          'Unknown User';
+        replyText = parentMsg.text || parentMsg.message || '';
+        console.log('Found parent data:', { replyReference, replyText });
+      } else {
+        console.log('No parent message found for ID:', msg.parent_id);
+        // Set fallback values
+        replyReference = 'Unknown User';
+        replyText = 'Original message not available';
+      }
+    }
+
+    const formattedMessage = {
+      id: msg.id,
+      text: msg.text,
+      isMe,
+      username: msg.user.name,
+      avatar: avatarUri ? { uri: avatarUri } : undefined,
+      timestamp: new Date(msg.created_at),
+      parentId: msg.parent_id,
+      replyTo: replyReference,
+      replyText: replyText,
+      likes: likeCount,
+      isLiked: isLiked,
+      likeState: {
+        isLiked,
+        likeCount,
+        userLikes:
+          msg.latest_reactions
+            ?.filter((r: any) => r.type === 'like')
+            ?.map((r: any) => r.user?.id) || [],
+      },
+    };
+
+    if (hasParent) {
+      console.log('Formatted message with reply:', formattedMessage);
+    }
+
+    return formattedMessage;
+  }, []);
+
+  useEffect(() => {
+    if (currentUser && messages.length > 0) {
+      console.log('Re-formatting messages with updated currentUser');
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) => {
+          const isMe =
+            msg.username === currentUser.name ||
+            (msg.username &&
+              currentUser.display_name &&
+              msg.username === currentUser.display_name);
+
+          return {
+            ...msg,
+            isMe,
+          };
+        }),
+      );
+    }
+  }, [currentUser, messages.length]);
+
+  const initializeChat = useCallback(async () => {
+    try {
+      setIsConnecting(true);
+      setIsLoadingMessages(true);
+
+      const connected = await streamChatService.connectUser();
+      if (!connected) {
+        Alert.alert('Error', 'Failed to connect to chat');
+        navigation.goBack();
+        return;
+      }
+
+      const presentUser = streamChatService.getCurrentUser();
+      setCurrentUser(presentUser);
+      currentUserRef.current = presentUser;
+
+      const gameData = {
+        eventId: gameId,
+        homeTeamName: homeTeam,
+        awayTeamName: awayTeam,
+        gameStatus: 'live' as const,
+        gameTime: parseGameDateTime(gameTime, gameDate),
+        homeTeamLogo,
+        awayTeamLogo,
+        gameType,
+      };
+
+      const gameChannel =
+        await streamChatService.createOrJoinGameChannel(gameData);
+      setChannel(gameChannel);
+
+      const response = await gameChannel.query({
+        messages: { limit: 30 },
+      });
+
+      // First, store all messages in our ref for parent lookup
+      response.messages.forEach((msg: any) => {
+        allMessagesRef.current.set(msg.id, msg);
+      });
+
+      // Fetch replies for each message with replies
+      let allMessages = [...response.messages];
+      for (const msg of response.messages) {
+        if (msg.reply_count > 0) {
+          try {
+            const repliesResponse = await gameChannel.getReplies(msg.id);
+            repliesResponse.messages.forEach((reply: any) => {
+              allMessagesRef.current.set(reply.id, reply);
+            });
+            allMessages = allMessages.concat(repliesResponse.messages);
+          } catch (err) {
+            console.error('Failed to fetch replies for', msg.id, err);
+          }
+        }
+      }
+
+      // Sort all messages by created_at (oldest first)
+      allMessages.sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
+
+      // Then format messages (now parent lookup will work)
+      const formattedMessages = allMessages.map((msg: any) =>
+        formatMessage(msg, presentUser),
+      );
+      setMessages(formattedMessages);
+      setIsLoadingMessages(false);
+
+      const handleNewMessage = (event: any) => {
+        const newMessage = formatMessage(event.message, currentUserRef.current);
+        setMessages((prev) => {
+          if (prev.some((msg) => msg.id === newMessage.id)) {
+            return prev; // Skip if already exists
+          }
+          return [...prev, newMessage];
+        });
+
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      };
+
+      const handleMessageUpdated = (event: any) => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === event.message.id
+              ? formatMessage(event.message, currentUserRef.current)
+              : msg,
+          ),
+        );
+      };
+
+      const handleReactionNew = (event: any) => {
+        console.log('New reaction:', event.reaction);
+        if (event.reaction.type === 'like') {
+          // The event.message object has the updated reaction counts.
+          // Re-format the message from the event to get the correct state.
+          const updatedMessage = formatMessage(
+            event.message,
+            currentUserRef.current,
+          );
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === updatedMessage.id ? updatedMessage : msg,
+            ),
+          );
+        }
+      };
+
+      const handleReactionDeleted = (event: any) => {
+        console.log('Reaction deleted:', event.reaction);
+        if (event.reaction.type === 'like') {
+          // The event.message object has the updated reaction counts.
+          // Re-format the message from the event to get the correct state.
+          const updatedMessage = formatMessage(
+            event.message,
+            currentUserRef.current,
+          );
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === updatedMessage.id ? updatedMessage : msg,
+            ),
+          );
+        }
+      };
+
+      const handleMessageDeleted = (event: any) => {
+        setMessages((prev) =>
+          prev.filter((msg) => msg.id !== event.message.id),
+        );
+      };
+
+      gameChannel.on('message.new', handleNewMessage);
+      gameChannel.on('message.updated', handleMessageUpdated);
+      gameChannel.on('message.deleted', handleMessageDeleted);
+      gameChannel.on('reaction.new', handleReactionNew);
+      gameChannel.on('reaction.deleted', handleReactionDeleted);
+
+      console.log('Chat initialized successfully');
+    } catch (error) {
+      setIsLoadingMessages(false);
+      console.error('Failed to initialize chat:', error);
+      Alert.alert('Error', 'Failed to initialize chat');
+    } finally {
+      setIsConnecting(false);
+    }
+  }, [
+    gameId,
+    awayTeam,
+    awayTeamLogo,
+    gameTime,
+    gameDate,
+    gameType,
+    homeTeam,
+    homeTeamLogo,
+    navigation,
+    formatMessage,
+  ]);
+
+  useEffect(() => {
+    const initialize = async () => {
+      await initializeChat();
+    };
+    initialize();
+
+    return () => {
+      if (channel) {
+        channel.off('message.new');
+        channel.off('message.updated');
+        channel.off('message.deleted');
+        channel.off('reaction.new');
+        channel.off('reaction.deleted');
+        channel.off();
+      }
+    };
+  }, [
+    gameId,
+    awayTeam,
+    awayTeamLogo,
+    gameTime,
+    gameType,
+    homeTeam,
+    homeTeamLogo,
+    channel,
+    initializeChat,
+  ]);
+
+  useEffect(() => {
+    if (flatListRef.current && messagesLength > 0) {
       const timer = setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100); // Adjust delay as needed
+      }, 100);
       return () => clearTimeout(timer);
     }
-  }, [messages]);
+  }, [messagesLength, isLoadingMessages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = inputValue.trim();
-    if (!trimmed) return;
-    const newMessage = {
-      id: uuid.v4(),
-      text: trimmed,
-      isMe: true,
-    };
-    setMessages([...messages, newMessage]);
-    setInputValue('');
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
+    if (!trimmed || !channel) return;
+
+    try {
+      // Clear input immediately for better UX
+      setInputValue('');
+
+      // Prepare message data
+      const messageData: any = {
+        text: trimmed,
+      };
+
+      // Add parent message if replying
+      if (replyTo) {
+        messageData.parent_id = replyTo.id;
+      }
+
+      // Send message through Stream Chat
+      const response = await channel.sendMessage(messageData);
+      console.log('Message sent successfully:', response);
+
+      // Clear reply state
+      setReplyTo(null);
+
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      Alert.alert('Error', 'Failed to send message');
+      // Restore input value if sending failed
+      setInputValue(trimmed);
+    }
+  };
+
+  // Handle like toggle
+  const handleLikeToggle = async (message: Message) => {
+    if (likingMessages.has(message.id)) return; // Prevent double-tapping
+
+    setLikingMessages((prev) => new Set(prev).add(message.id));
+
+    try {
+      // The event listeners ('reaction.new', 'reaction.deleted') will handle the UI update.
+      // We no longer need to manually update state here.
+      await streamChatService.toggleMessageLike(message.id, message.parentId);
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+      Alert.alert('Error', 'Failed to update like');
+    } finally {
+      setLikingMessages((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(message.id);
+        return newSet;
+      });
+    }
+  };
+
+  const handleReply = (message: Message) => {
+    setReplyTo(message);
+    setShowActionMenu(false);
+    setSelectedMessage(null);
+    inputRef.current?.focus();
+  };
+
+  const handleWagers = () => {
+    console.log('wagers clicked!');
+  };
+
+  const handleReport = () => {
+    console.log('report clicked!');
+  };
+
+  const handleCancelReply = () => {
+    setReplyTo(null);
+  };
+
+  // Handle long press with action menu
+  const handleLongPress = (message: Message) => {
+    setSelectedMessage(message);
+    setShowActionMenu(true);
+  };
+
+  const handleCloseActionMenu = () => {
+    setShowActionMenu(false);
+    setSelectedMessage(null);
   };
 
   const handleInputKeyPress = (
@@ -151,83 +589,42 @@ const GameChatScreen: React.FC<GameChatProps> = ({ route }) => {
     }
   };
 
-  const renderDateSeparator = (label: string) => (
-    <View>
-      <Text style={styles.dateSeparatorText}>{label}</Text>
-    </View>
-  );
+  const displayTitle = `${homeTeam} @ ${awayTeam}`;
 
-  const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    if (item.dateSeparator) return renderDateSeparator(item.dateSeparator);
-    const isMe = item.isMe;
-    let showUsername = false;
-    if (!isMe && item.username) {
-      if (
-        index === 0 ||
-        (messages[index - 1] && messages[index - 1].username !== item.username)
-      ) {
-        showUsername = true;
+  useEffect(() => {
+    const checkAndSyncAvatar = async () => {
+      if (isCheckingAvatar) return;
+
+      try {
+        setIsCheckingAvatar(true);
+        const { userData } = await tokenService.getTokenData();
+
+        if (
+          userData?.avatar &&
+          userData.avatar !== lastSyncedAvatarRef.current
+        ) {
+          const fullAvatarUrl = `${COMMON.imageBaseUrl}${userData.avatar}`;
+
+          // Only update Stream Chat user, don't force channel updates
+          await streamChatService.updateUserAvatar(fullAvatarUrl);
+
+          // Update local state once
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.isMe ? { ...msg, avatar: { uri: fullAvatarUrl } } : msg,
+            ),
+          );
+
+          lastSyncedAvatarRef.current = userData.avatar;
+        }
+      } catch (error) {
+        console.error('Error syncing avatar:', error);
+      } finally {
+        setIsCheckingAvatar(false);
       }
-    }
-    return (
-      <View style={[styles.messageRow, isMe ? styles.rowMe : styles.rowOther]}>
-        {!isMe && <Image source={item.avatar!} style={styles.avatar} />}
-        <View
-          style={[
-            styles.messageContent,
-            isMe ? styles.contentMe : styles.contentOther,
-          ]}
-        >
-          {!isMe && showUsername && (
-            <Text style={styles.usernameText}>{item.username}</Text>
-          )}
-          {/* Reply label and bubble above main bubble */}
-          {item.replyTo && (
-            <View style={styles.replyStack}>
-              <Text
-                style={styles.replyLabel}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                Replied to{' '}
-                <Text style={styles.replyLabelUsername}>{item.replyTo}</Text>
-              </Text>
-              <View style={styles.replyBubble}>
-                <Text
-                  style={styles.replyBubbleText}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {item.replyText}
-                </Text>
-              </View>
-            </View>
-          )}
-          <View
-            style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}
-          >
-            <Text
-              style={[
-                styles.messageText,
-                isMe && styles.messageTextMe,
-                item.replyTo && styles.messageTextWithReply,
-              ]}
-            >
-              {item.text}
-            </Text>
-          </View>
-          {/* Like pill outside and overlapping bubble */}
-          {item.likes != null && (
-            <View style={[styles.likePillFloat, styles.likePillFloatEnd]}>
-              <Icon name="heart-outline" size={11} color="#fff" />
-              <Text style={styles.likePillTextOverlay}>{item.likes}</Text>
-            </View>
-          )}
-        </View>
-        {isMe && <Image source={item.avatar!} style={styles.avatar} />}
-      </View>
-    );
-  };
+    };
+    checkAndSyncAvatar();
+  }, [user?.avatar, isCheckingAvatar]);
 
   return (
     <SafeAreaView style={[themeStyles.flex1, styles.container]} edges={['top']}>
@@ -238,41 +635,26 @@ const GameChatScreen: React.FC<GameChatProps> = ({ route }) => {
       </View>
 
       {/* Header actions */}
-      <View style={[themeStyles.flexRow, styles.headerRow]}>
-        <TouchableOpacity style={styles.headerIcon}>
-          <Icon name="star-outline" size={24} color="#8F8184" />
-        </TouchableOpacity>
-        <View style={styles.headerTitleBlock}>
-          <Text style={styles.headerTitle}>Titans @ Falcons</Text>
-        </View>
-        <TouchableOpacity style={styles.headerIcon}>
-          <Icon name="ellipsis-horizontal" size={24} color="#8F8184" />
-        </TouchableOpacity>
-      </View>
+      <GameChatHeader
+        displayTitle={displayTitle}
+        themeStyles={themeStyles}
+        onStarPress={() => console.log('Star pressed')}
+        onMenuPress={() => console.log('Menu pressed')}
+      />
 
       {/* Game info */}
-      <View style={styles.gameInfo}>
-        <View style={styles.teamsRow}>
-          <View style={styles.teamBlock}>
-            <Image source={team1Logo} style={styles.teamLogo} />
-            <Text style={styles.teamCode}>PHL</Text>
-          </View>
-          <View style={styles.separatorLine} />
-          <View style={styles.timeBlock}>
-            <Text style={styles.gameDate}>SUN, 12/01</Text>
-            <Text style={styles.gameTime}>1:00 PM</Text>
-            <Text style={styles.gameChannel}>CBS</Text>
-          </View>
-          <View style={styles.separatorLine} />
-          <View style={styles.teamBlock}>
-            <Image source={team2Logo} style={styles.teamLogo} />
-            <Text style={styles.teamCode}>WSH</Text>
-          </View>
-        </View>
-      </View>
+      <GameChatGameInfo
+        homeTeam={homeTeam}
+        awayTeam={awayTeam}
+        homeTeamLogo={homeTeamLogo}
+        awayTeamLogo={awayTeamLogo}
+        gameDate={gameDate}
+        gameTime={gameTime}
+        gameType={gameType}
+      />
 
       {/* Divider */}
-      <View style={styles.divider} />
+      <GameChatDivider />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -280,50 +662,45 @@ const GameChatScreen: React.FC<GameChatProps> = ({ route }) => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 40}
       >
         {/* Chat list */}
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={({ item, index }) => renderMessage({ item, index })}
-          keyExtractor={(i) => i.id}
-          contentContainerStyle={styles.chatList}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+        <GameChatList
+          messages={messages}
+          isLoadingMessages={isLoadingMessages}
+          likingMessages={likingMessages}
+          themeColors={themeColors}
+          flatListRef={flatListRef}
+          onLikeToggle={handleLikeToggle}
+          onLongPress={handleLongPress}
+          formatDateTime={formatDateTime}
+          currentDateTime={currentDateTime}
         />
 
         {/* Message input */}
-        <View style={styles.inputContainer}>
-          <View style={styles.inputRow}>
-            <TouchableOpacity style={styles.plusButton}>
-              <Icon name="add-circle-outline" size={28} color="#fff" />
-            </TouchableOpacity>
-            <TextInput
-              ref={inputRef}
-              style={styles.input}
-              placeholder="Good morning…"
-              placeholderTextColor="#FFFFFF"
-              value={inputValue}
-              onChangeText={setInputValue}
-              onSubmitEditing={handleSend}
-              onKeyPress={handleInputKeyPress}
-              returnKeyType="send"
-            />
-            <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-              <Icon name="send" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
+        <GameChatMessageInput
+          inputValue={inputValue}
+          setInputValue={setInputValue}
+          replyTo={replyTo}
+          isConnecting={isConnecting}
+          inputRef={inputRef}
+          onSend={handleSend}
+          onCancelReply={handleCancelReply}
+          onInputKeyPress={handleInputKeyPress}
+        />
       </KeyboardAvoidingView>
+
+      {/* Action Menu */}
+      <GameChatActionMenu
+        showActionMenu={showActionMenu}
+        selectedMessage={selectedMessage}
+        onCloseActionMenu={handleCloseActionMenu}
+        onLikeToggle={handleLikeToggle}
+        onReply={handleReply}
+        onWagers={handleWagers}
+        onReport={handleReport}
+      />
     </SafeAreaView>
   );
 };
 
-/**
- * A function to create styles for a component using the provided theme colors.
- *
- * @param themeColors - An object where keys are the names of the colors and
- *   values are the color codes.
- * @returns Returns a StyleSheet object containing the styles for the component.
- */
 const createStyles = (themeColors: Record<string, string>) =>
   StyleSheet.create({
     container: {
@@ -333,200 +710,12 @@ const createStyles = (themeColors: Record<string, string>) =>
     keyboardAvoidingView: {
       flex: 1,
     },
-    inputContainer: {
-      backgroundColor: '#1B2470',
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16,
-      paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-    },
     topBar: {
       justifyContent: 'space-between',
       alignItems: 'center',
       flexDirection: 'row',
       padding: 12,
       backgroundColor: '#181C4A',
-    },
-
-    headerRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      backgroundColor: '#181C4A',
-    },
-    headerIcon: { marginHorizontal: 8 },
-    headerTitleBlock: { flex: 1, alignItems: 'center' },
-    headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-
-    gameInfo: { alignItems: 'center', paddingVertical: 8 },
-    teamsRow: { flexDirection: 'row', alignItems: 'center' },
-    teamBlock: { alignItems: 'center' },
-    teamLogo: { width: 56, height: 56, resizeMode: 'contain' },
-    teamCode: { marginTop: 4, color: '#fff', fontSize: 14, fontWeight: 'bold' },
-    separatorLine: {
-      width: 50,
-      height: 2,
-      backgroundColor: '#A4A4A4',
-      marginHorizontal: 12,
-    },
-    timeBlock: { alignItems: 'center' },
-    gameDate: { color: '#A4A4A4', fontSize: 12, marginBottom: 2 },
-    gameTime: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: 'bold',
-      marginVertical: 2,
-    },
-    gameChannel: { color: '#A4A4A4', fontSize: 12 },
-
-    divider: {
-      height: 1,
-      backgroundColor: '#353A6D',
-      width: '90%',
-      alignSelf: 'center',
-      marginVertical: 8,
-    },
-
-    chatList: {
-      paddingBottom: 20,
-    },
-    messageRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      marginVertical: 6,
-      paddingHorizontal: 12,
-      position: 'relative',
-    },
-    rowOther: { justifyContent: 'flex-start' },
-    rowMe: { justifyContent: 'flex-end', paddingRight: 2 },
-
-    avatar: { width: 36, height: 36, borderRadius: 18, marginHorizontal: 8 },
-    messageContent: { flexDirection: 'column', maxWidth: '75%' },
-    contentOther: { alignItems: 'flex-start' },
-    contentMe: { alignItems: 'flex-end' },
-
-    replyStack: {
-      marginBottom: 2,
-      alignSelf: 'flex-start',
-      maxWidth: '80%',
-    },
-    replyLabel: {
-      color: '#fff',
-      fontSize: 12,
-      marginBottom: 2,
-      marginLeft: 4,
-    },
-    replyLabelUsername: {
-      color: '#fff',
-      fontWeight: 'bold',
-    },
-    replyBubble: {
-      backgroundColor: '#E6E6EA',
-      borderRadius: 10,
-      paddingVertical: 7,
-      paddingHorizontal: 14,
-      marginBottom: 4,
-      alignSelf: 'flex-start',
-      maxWidth: 260,
-    },
-    replyBubbleText: {
-      color: '#45435D',
-      fontSize: 15,
-    },
-
-    bubble: {
-      borderRadius: 12,
-      paddingHorizontal: 10,
-      paddingTop: 7,
-      paddingBottom: 13,
-      backgroundColor: '#45435D',
-      minWidth: 60,
-      minHeight: 36,
-      justifyContent: 'center',
-      position: 'relative',
-    },
-    bubbleOther: {},
-    bubbleMe: { backgroundColor: '#2ECC8B' },
-
-    messageText: { color: '#fff', fontSize: 15 },
-    messageTextMe: { color: '#181C4A' },
-    messageTextWithReply: { marginTop: 2 },
-
-    likesContainer: {
-      flexShrink: 0,
-      marginLeft: 8,
-      marginBottom: 6,
-      justifyContent: 'flex-end',
-    },
-    likePill: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#1B2470',
-      borderRadius: 12,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-    },
-    likePillText: { color: '#fff', fontSize: 14, marginLeft: 4 },
-
-    inputRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-    },
-    plusButton: { marginRight: 8 },
-    input: {
-      flex: 1,
-      backgroundColor: '#F7F7FC99',
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      color: '#FFFFFF',
-      fontSize: 16,
-    },
-    sendButton: { marginLeft: 8 },
-
-    dateSeparatorText: {
-      marginHorizontal: 8,
-      color: '#A4A4A4',
-      fontSize: 13,
-      fontWeight: '500',
-      alignSelf: 'center',
-    },
-
-    likePillOverlay: { display: 'none' },
-    likePillFloat: {
-      position: 'absolute',
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#1B2470',
-      borderRadius: 9,
-      paddingHorizontal: 5,
-      paddingVertical: 1,
-      zIndex: 3,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.18,
-      shadowRadius: 1.0,
-      elevation: 2,
-    },
-    likePillFloatEnd: {
-      right: -12,
-      bottom: -7,
-    },
-    likePillTextOverlay: {
-      color: '#fff',
-      fontSize: 11,
-      marginLeft: 2,
-      fontWeight: '500',
-    },
-
-    usernameText: {
-      color: '#fff',
-      fontWeight: 'bold',
-      fontSize: 13,
-      marginBottom: 2,
-      marginLeft: 2,
     },
   });
 

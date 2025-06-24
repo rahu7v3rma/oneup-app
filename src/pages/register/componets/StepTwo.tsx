@@ -1,9 +1,8 @@
 import Button from '@shared/button';
 import { FC } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ThemeStyles } from 'styles';
 
-import { registerMinimumAge } from '../../../constants';
 import DateInputField from '../../../shared/dateInput';
 import InputField from '../../../shared/inputField';
 import { Fonts } from '../../../theme/fonts';
@@ -38,30 +37,18 @@ export const StepTwo: FC<IStepTwo> = ({ handleSubmit }) => {
 
   const styles = getStyles(themeStyles);
 
-  const getMinimumBirthDate = () => {
-    const minimumAge = registerMinimumAge;
-    const today = new Date();
-    const minimumBirthDate = new Date(today);
-    minimumBirthDate.setFullYear(today.getFullYear() - minimumAge);
-    return minimumBirthDate;
-  };
-
   return (
-    <View style={styles.stepOneContainer}>
+    <ScrollView style={styles.stepOneContainer}>
       <Text style={styles.largeText}>Let's get some details about you</Text>
       <View style={styles.formContainer}>
         <InputField name="firstName" placeholder="First Name" />
         <InputField name="lastName" placeholder="Last Name" />
-        <DateInputField
-          name="birthDay"
-          placeHolder="Date of Birth"
-          minimumDate={getMinimumBirthDate()}
-        />
+        <DateInputField name="birthDay" placeHolder="Date of Birth" />
       </View>
       <View style={styles.buttonView}>
         <Button size="lg" title="Next" onPress={handleSubmit} />
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

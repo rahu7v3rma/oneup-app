@@ -6,14 +6,12 @@ export const FingerPrint: FC = () => {
     <Svg width={20} height={21} viewBox="0 0 20 21" fill="none">
       <Mask
         id="a"
-        style={{
-          maskType: 'alpha',
-        }}
         maskUnits="userSpaceOnUse"
         x={0}
         y={0}
         width={20}
         height={21}
+        maskType="alpha"
       >
         <Path fill="#D9D9D9" d="M0 0.0200195H20V20.0200195H0z" />
       </Mask>

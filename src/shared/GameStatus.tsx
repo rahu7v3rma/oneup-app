@@ -2,9 +2,9 @@ import { View, StyleSheet, Text } from 'react-native';
 
 import { GameStatusEnum } from '../enums/gameStatus';
 import { ICommand } from '../interfaces/comand.interface';
-import Button from '../shared/button';
 import { useThemeStyles } from '../theme/ThemeStylesProvider';
 
+import Button from './button';
 import { Tournament } from './Tournament';
 
 export interface IGameStatusProps {
@@ -53,7 +53,7 @@ export function GameStatus({
         <Button
           title="Game Chat"
           onPress={gameChatClick}
-          style={[{ width: '50%' }, styles.chatButton]}
+          style={[styles.chatButton]}
           textColor={{ color: '#04BA6A' }}
         />
       </View>

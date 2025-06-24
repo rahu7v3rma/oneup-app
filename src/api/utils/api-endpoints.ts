@@ -6,5 +6,5 @@ export const AuthApiEndpoints = {
   RESETPASSWORDVERFIY: '/user/reset/verify',
   RESETPASSWORDCONFIRM: '/user/reset/confirm',
   CHANGEPASSWORD: '/user/change-password',
-  UPDATEUSER: '/user/update-profile'
+  UPDATEUSER: '/user/update-profile',
 };

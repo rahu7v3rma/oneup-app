@@ -35,5 +35,5 @@ export {
   FingerPrint,
   MasterCard,
   Paypal,
-  Bank
+  Bank,
 };

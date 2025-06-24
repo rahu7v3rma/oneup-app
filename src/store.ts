@@ -12,10 +12,12 @@ import {
   REHYDRATE,
 } from 'redux-persist';
 
+import sportReducer from './reducers/match';
 import postReducer from './reducers/post';
 
 const rootReducer = combineReducers({
   post: postReducer,
+  sport: sportReducer,
 });
 
 const ignoreLoadingTransform = createTransform(

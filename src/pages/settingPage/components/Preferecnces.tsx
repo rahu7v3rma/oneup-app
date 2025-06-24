@@ -7,9 +7,9 @@ import {
   ProfileIcon,
   Wallet,
 } from '../../../../assets/svgs/index.tsx';
-import { OptionsContainer } from '../../../components/OptionsContainer.tsx';
 import { ISettingInput } from '../../../interfaces/settingInput.interface.ts';
 import { RootNavigationProp } from '../../../navigation/settingNav/SettingNav.tsx';
+import { OptionsContainer } from '../../../shared/OptionsContainer.tsx';
 import { useTheme } from '../../../theme/ThemeProvider.tsx';
 
 export const Preferences: FC = () => {

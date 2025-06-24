@@ -12,7 +12,7 @@ import * as Yup from 'yup';
 
 import AppLogo from '../../../assets/svgs/appLogo';
 import { AuthContext } from '../../context/authContext';
-import { chatClient } from '../../lib/streamClient';
+import { streamChatService } from '../../services/streamChat';
 import CheckboxField from '../../shared/Checkboxfield';
 import InputField from '../../shared/inputField';
 import LoginButton from '../../shared/loginButton';
@@ -52,13 +52,18 @@ const Login = () => {
     });
     setLoading(false);
     if (success) {
-      // TODO: Replace id, name and stream user token with the backend response
-      // More info: https://getstream.io/chat/docs/react-native/tokens_and_authentication/#generating-tokens
-      const res = await chatClient.connectUser(
-        { id: 'userId', name: 'userEmailOrName' },
-        chatClient.devToken('userId'),
-      );
-      console.log(res);
+      try {
+        const connected = await streamChatService.connectUser();
+        if (connected) {
+          console.log('Stream Chat connected successfully');
+        } else {
+          console.warn(
+            'Failed to connect to Stream Chat, but continuing with login',
+          );
+        }
+      } catch (error) {
+        console.error('Failed to connect to Stream Chat:', error);
+      }
 
       navigation.dispatch(
         CommonActions.reset({

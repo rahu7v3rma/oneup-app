@@ -91,7 +91,7 @@ const ScoreBar = (data: ScoreBarProps) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ marginBottom: 10 }}>
+      <View style={styles.marginBottom}>
         <View style={styles.labelRow}>
           <Text style={styles.value}>
             {isTime ? timerHomeValue : homeValue}
@@ -116,6 +116,9 @@ const getStyles = (themeColors: ThemeColors) => {
   return StyleSheet.create({
     container: {
       paddingHorizontal: 16,
+    },
+    marginBottom: {
+      marginBottom: 10,
     },
     labelRow: {
       flexDirection: 'row',

@@ -177,6 +177,11 @@ export const createStyles = (colors: ThemeColors) => {
       alignSelf: 'center',
     },
 
+    feedVideoDetails: {
+      height: 500,
+      width: '100%',
+    },
+
     separatorLine: {
       width: 48,
       height: 1,

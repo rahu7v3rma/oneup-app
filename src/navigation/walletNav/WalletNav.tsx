@@ -6,11 +6,11 @@ import {
 import React from 'react';
 import { Platform } from 'react-native';
 
-import { PaymentSheetPreview } from '../../components/PaymentSheet';
 import { AddBank, Wallet } from '../../pages';
 import { CardDetailsPreview } from '../../pages/cardDetails';
 import AddMoneyScreen from '../../screens/AddMoney';
 import TransferMoneyScreen from '../../screens/TranserMoney';
+import { PaymentSheetPreview } from '../../shared/PaymentSheet';
 
 const Stack = createNativeStackNavigator();
 

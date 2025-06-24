@@ -1,8 +1,14 @@
 import Icon from '@react-native-vector-icons/ionicons';
 import React from 'react';
-import {StyleProp, StyleSheet, TextStyle, TouchableOpacity} from 'react-native';
-import {useTheme} from '../theme/ThemeProvider';
-import {ThemeColors} from '../theme/colors';
+import {
+  StyleProp,
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+} from 'react-native';
+
+import { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeProvider';
 
 type AddButtonProps = {
   onPress?: () => void;
@@ -19,12 +25,7 @@ type AddButtonProps = {
  * @param style - Optional style object.
  * @returns Returns a TouchableOpacity component styled as a Add button.
  */
-const AddButton = ({
-  onPress,
-  size,
-  color,
-  style = {},
-}: AddButtonProps) => {
+const AddButton = ({ onPress, size, color, style = {} }: AddButtonProps) => {
   const theme = useTheme();
   const styles = getStyles(theme.themeColors);
   return (
@@ -44,12 +45,12 @@ const getStyles = (themeColors: ThemeColors) => {
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent:'center',
+      justifyContent: 'center',
       width: 36,
       height: 25,
-      borderRadius:2,
-      borderColor:themeColors.btnBG,
-      borderWidth:1,
+      borderRadius: 2,
+      borderColor: themeColors.btnBG,
+      borderWidth: 1,
     },
   });
 };

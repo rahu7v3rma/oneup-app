@@ -4,11 +4,11 @@ import { View, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Bank, MasterCard, Paypal } from '../../../assets/svgs';
-import PaymentSheet from '../../components/PaymentSheet';
 import AddButton from '../../shared/addButton';
 import BackButton from '../../shared/backButton';
 import { BottomSheetRef } from '../../shared/bottomSheet';
 import ForwardButton from '../../shared/forwardButton';
+import PaymentSheet from '../../shared/PaymentSheet';
 import Text from '../../shared/text';
 import { ThemeColors } from '../../theme/colors';
 import { Fonts } from '../../theme/fonts';

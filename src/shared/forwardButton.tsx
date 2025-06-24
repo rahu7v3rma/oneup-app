@@ -1,7 +1,8 @@
 import Icon from '@react-native-vector-icons/ionicons';
 import React from 'react';
-import {StyleProp, TextStyle, TouchableOpacity} from 'react-native';
-import {useTheme} from '../theme/ThemeProvider';
+import { StyleProp, TextStyle, TouchableOpacity } from 'react-native';
+
+import { useTheme } from '../theme/ThemeProvider';
 
 type ForwardButtonProps = {
   onPress: () => void;

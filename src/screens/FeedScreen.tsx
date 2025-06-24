@@ -4,7 +4,7 @@ import { AuthContext } from 'context/authContext';
 import { useContext } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
-import FeedCard from '../components/FeedCard';
+import FeedCard from '../shared/FeedCard';
 
 export default function FeedScreen() {
   const { signOut } = useContext(AuthContext);
