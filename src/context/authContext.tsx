@@ -464,13 +464,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Password change error:', error);
       const axiosError = error as AxiosError<any>;
       const errorMessage =
+        axiosError.response?.data.data.new_password[0] ||
         axiosError.response?.data?.message ||
         'An error occurred during password change';
 
       Toast.show({
         type: 'error',
-        text1: 'Change Error',
-        text2: errorMessage,
+        text2: 'Change Error',
+        text1: errorMessage,
         position: 'top',
         visibilityTime: 4000,
       });

@@ -91,7 +91,7 @@ const WeeklyCalendar: FunctionComponent<Props> = ({
   const renderItem = ({ item }: { item: WeekData }) => {
     const isSelected = selectedWeek?.id === item.id;
     const displayDateRange = item.isCurrentWeek
-      ? 'Current'
+      ? 'CURRENT'
       : `${item.startDate} - ${item.endDate}`;
     return (
       <TouchableOpacity onPress={() => onWeekSelect(item)}>
@@ -107,8 +107,8 @@ const WeeklyCalendar: FunctionComponent<Props> = ({
               styles.weekText,
               {
                 color: isSelected
-                  ? themeColors.textWhite
-                  : themeColors.inputPlaceholderClr,
+                  ? themeColors.textGreen
+                  : themeColors.slateGray,
               },
             ]}
           >
@@ -120,7 +120,7 @@ const WeeklyCalendar: FunctionComponent<Props> = ({
               {
                 color: isSelected
                   ? themeColors.textWhite
-                  : themeColors.inputPlaceholderClr,
+                  : themeColors.textSupporting,
               },
             ]}
           >
@@ -157,22 +157,27 @@ const WeeklyCalendar: FunctionComponent<Props> = ({
 
 const styles = StyleSheet.create({
   weekText: {
-    fontSize: 6,
+    fontSize: 8,
     lineHeight: 14,
+    fontWeight: '500',
   },
   weekNumber: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     lineHeight: 14,
   },
   container: {
-    paddingHorizontal: 10,
-    height: 60,
+    height: 50,
+    fontFamily: 'Inter',
+    backgroundColor: '#10151B',
+    marginTop: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   weekItem: {
     width: 100,
-    height: 50,
-    marginHorizontal: 6,
+    height: 55,
+    marginHorizontal: 3,
     borderRadius: 8,
     padding: 8,
   },

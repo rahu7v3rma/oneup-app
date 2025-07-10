@@ -1,16 +1,15 @@
-import Icon from '@react-native-vector-icons/ionicons';
 import type React from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
-  Platform,
   StyleSheet,
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
 } from 'react-native';
 
+import HandCoin from '../../../../assets/svgs/chatSVGs/handCoin.svg';
+import Send from '../../../../assets/svgs/chatSVGs/Send.svg';
 import { MessageState } from '../../../types/GameChat';
 
 interface GameChatMessageInputProps {
@@ -33,39 +32,19 @@ const GameChatMessageInput: React.FC<GameChatMessageInputProps> = ({
   isConnecting,
   inputRef,
   onSend,
-  onCancelReply,
   onInputKeyPress,
 }) => {
   return (
     <View style={styles.inputContainer}>
-      {replyTo && (
-        <View style={styles.replyPreview}>
-          <View style={styles.replyPreviewContent}>
-            <Text style={styles.replyPreviewLabel}>
-              Replying to {replyTo.username}
-            </Text>
-            <Text style={styles.replyPreviewText} numberOfLines={1}>
-              {replyTo.text}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.replyPreviewCancel}
-            onPress={onCancelReply}
-          >
-            <Icon name="close" size={20} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      )}
-
       <View style={styles.inputRow}>
         <TouchableOpacity style={styles.plusButton}>
-          <Icon name="add-circle-outline" size={28} color="#fff" />
+          <HandCoin width={20} height={20} />
         </TouchableOpacity>
         <TextInput
           ref={inputRef}
           style={styles.input}
-          placeholder={replyTo ? 'Write a reply...' : 'Good morning…'}
-          placeholderTextColor="#FFFFFF"
+          placeholder={replyTo ? 'Write a reply...' : 'Type message...'}
+          placeholderTextColor="#707077"
           value={inputValue}
           onChangeText={setInputValue}
           onSubmitEditing={onSend}
@@ -78,7 +57,7 @@ const GameChatMessageInput: React.FC<GameChatMessageInputProps> = ({
           onPress={onSend}
           disabled={isConnecting || !inputValue.trim()}
         >
-          <Icon name="send" size={20} color="#fff" />
+          <Send width={23} height={23} />
         </TouchableOpacity>
       </View>
     </View>
@@ -87,19 +66,16 @@ const GameChatMessageInput: React.FC<GameChatMessageInputProps> = ({
 
 const styles = StyleSheet.create({
   inputContainer: {
-    backgroundColor: '#1B2470',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+    backgroundColor: '#141B22',
+    height: 70,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
   replyPreview: {
-    backgroundColor: '#1B2470',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: '#353A6D',
   },
   replyPreviewContent: {
     flex: 1,
@@ -108,7 +84,6 @@ const styles = StyleSheet.create({
   replyPreviewLabel: {
     color: '#fff',
     fontSize: 12,
-    marginBottom: 2,
   },
   replyPreviewText: {
     color: '#A4A4A4',
@@ -120,18 +95,13 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
   },
   plusButton: {
     marginRight: 8,
   },
   input: {
     flex: 1,
-    backgroundColor: '#F7F7FC99',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 24,
     color: '#FFFFFF',
     fontSize: 16,
   },

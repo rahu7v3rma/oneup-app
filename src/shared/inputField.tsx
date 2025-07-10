@@ -10,6 +10,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 import { Fonts } from '../theme/fonts';
 import { useTheme } from '../theme/ThemeProvider';
@@ -98,52 +99,62 @@ const InputField = ({
 
   return (
     <View style={[styles.inputContainer, containerStyle]}>
-      <View style={[styles.inputView, themeStyles.inputStyle]}>
-        {label && (
-          <Text
-            style={[styles.labelText, themeStyles.themeInputPlacholderColor]}
-          >
-            {label}
-          </Text>
-        )}
+      <LinearGradient
+        colors={['#151A20', '#1B2128']}
+        start={{ x: 0.2, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
         <View
-          style={[
-            themeStyles.ph4,
-            themeStyles.input,
-            styles.inputWrapper,
-            meta.touched && meta.error ? themeStyles.errorInputBorder : {},
-          ]}
+          style={[styles.inputView, themeStyles.inputStyle, styles.transparent]}
         >
-          <TextInput
-            value={displayValue}
-            onChangeText={handleTextChange}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => {
-              setIsFocused(false);
-              helpers.setTouched(true);
-            }}
-            placeholder={placeholder}
-            secureTextEntry={isSecure}
-            keyboardType={getKeyboardType()}
-            style={[
-              themeStyles.flex1,
-              themeStyles.textSupporting,
-              themeStyles.inputText,
-            ]}
-            placeholderTextColor={themeColors.mutedText}
-            autoCapitalize="none"
-          />
-          {secureTextEntry && (
-            <Pressable onPress={toggleSecureEntry} style={styles.eyeIcon}>
-              <FontAwesome6
-                name={isSecure ? 'eye-slash' : 'eye'}
-                size={18}
-                color={themeColors.mutedText}
-              />
-            </Pressable>
+          {label && (
+            <Text
+              style={[styles.labelText, themeStyles.themeInputPlacholderColor]}
+            >
+              {label}
+            </Text>
           )}
+          <View
+            style={[
+              themeStyles.ph4,
+              themeStyles.input,
+              styles.inputWrapper,
+              meta.touched && meta.error ? themeStyles.errorInputBorder : {},
+              styles.transparent,
+            ]}
+          >
+            <TextInput
+              value={displayValue}
+              onChangeText={handleTextChange}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => {
+                setIsFocused(false);
+                helpers.setTouched(true);
+              }}
+              placeholder={placeholder}
+              secureTextEntry={isSecure}
+              keyboardType={getKeyboardType()}
+              style={[
+                themeStyles.flex1,
+                themeStyles.textSupporting,
+                themeStyles.inputText,
+              ]}
+              placeholderTextColor={themeColors.slateGray}
+              autoCapitalize="none"
+            />
+            {secureTextEntry && (
+              <Pressable onPress={toggleSecureEntry} style={styles.eyeIcon}>
+                <FontAwesome6
+                  name={isSecure ? 'eye-slash' : 'eye'}
+                  size={18}
+                  color={themeColors.mintGreen}
+                />
+              </Pressable>
+            )}
+          </View>
         </View>
-      </View>
+      </LinearGradient>
+
       {meta.touched &&
         meta.error &&
         (!hideRequiredMessage || !meta.error.includes('required')) && (
@@ -161,7 +172,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
   },
-
+  transparent: {
+    backgroundColor: 'transparent',
+  },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -184,6 +197,5 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 16,
     borderRadius: 8,
-    borderWidth: 1,
   },
 });

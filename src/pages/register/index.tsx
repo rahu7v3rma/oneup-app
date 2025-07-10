@@ -1,16 +1,13 @@
 import { CommonActions, useNavigation } from '@react-navigation/native';
+import AuthLayout from '@shared/authLayout';
 import { Formik } from 'formik';
 import React, { FC, useContext, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert } from 'react-native';
 import * as Yup from 'yup';
 
-import AppLogoSmaller from '../../../assets/svgs/appLogoSmaller';
 import { AuthContext } from '../../context/authContext';
-import BackButton from '../../shared/backButton';
-import { useTheme } from '../../theme/ThemeProvider';
 
 import { StepOne } from './componets/StepOne';
-import { StepThree } from './componets/stepThree';
 import { StepTwo } from './componets/StepTwo';
 
 /**
@@ -23,14 +20,13 @@ import { StepTwo } from './componets/StepTwo';
  * 3. Contact details (phone, address, city, state)
  *
  * The form progresses step-by-step with conditional validation and rendering.
- * It utilizes custom step components (StepOne, StepTwo, StepThree) and a shared BackButton.
+ * It utilizes custom step components (StepOne, StepTwo) and a shared BackButton.
  *
  * @component
  * @returns {JSX.Element} A scrollable multi-step form with validation and themed styling.
  */
 
 export const RegisterPage: FC = () => {
-  const { themeColors } = useTheme();
   const navigation = useNavigation();
   const { register } = useContext(AuthContext);
   const [step, setStep] = useState<number>(1);
@@ -44,9 +40,8 @@ export const RegisterPage: FC = () => {
     firstName: '',
     lastName: '',
     birthDay: '',
+    phone: '',
   };
-
-  const validStates = ['NY', 'CA', 'TX', 'FL', 'WA'];
 
   const isValidDate = (value: string) => {
     const [mm, dd, yyyy] = value.split('/');
@@ -108,27 +103,11 @@ export const RegisterPage: FC = () => {
       .required('Date of birth is required')
       .matches(mmddyyyyRegex, 'Date must be in MM/DD/YYYY format')
       .test('is-valid-date', 'Invalid calendar date', isValidDate),
-  });
-
-  const validationSchemaStepThree = Yup.object({
     phone: Yup.string()
       .matches(/^\d+$/, 'Phone must contain only digits')
       .min(10, 'Phone must be at least 10 digits')
       .max(15, 'Phone cannot be more than 15 digits')
       .required('Phone number is required'),
-    address1: Yup.string()
-      .min(3, 'Address must be at least 3 characters')
-      .required('Address is required'),
-    address2: Yup.string().notRequired(),
-    city: Yup.string()
-      .min(2, 'City name is too short')
-      .required('City is required'),
-    zipcode: Yup.string()
-      .matches(/^\d{5}$/, 'Zipcode must be 5 digits')
-      .required('Zipcode is required'),
-    state: Yup.string()
-      .oneOf(validStates, 'Please select a valid state')
-      .required('State is required'),
   });
 
   const formatDateForBackend = (dateString: string) => {
@@ -191,7 +170,7 @@ export const RegisterPage: FC = () => {
   };
 
   const handleFormSubmit = (values: any) => {
-    if (step < 3) {
+    if (step < 2) {
       setStep(step + 1);
     } else {
       handleFinalSubmit(values);
@@ -205,69 +184,54 @@ export const RegisterPage: FC = () => {
     if (currentStep === 2) {
       return validationSchemaSecondStep;
     }
-    if (currentStep === 3) {
-      return validationSchemaStepThree;
-    }
     return validationSchemaFirstStep;
   };
 
+  const handleNextClick = async (
+    validateForm: any,
+    setTouched: any,
+    handleSubmit: () => void,
+  ) => {
+    const errors = await validateForm();
+    if (Object.keys(errors).length > 0) {
+      setTouched(
+        Object.keys(errors).reduce(
+          (acc, key) => {
+            acc[key] = true;
+            return acc;
+          },
+          {} as Record<string, boolean>,
+        ),
+      );
+      return;
+    }
+
+    handleSubmit();
+  };
+
   return (
-    <ScrollView
-      contentContainerStyle={[
-        styles.container,
-        { backgroundColor: themeColors.appBG },
-      ]}
-      keyboardShouldPersistTaps="handled"
-    >
-      <BackButton
-        onPress={() => {
-          if (step > 1) {
-            setStep(step - 1);
-          } else {
-            navigation.goBack();
-          }
-        }}
-      />
-      <View style={styles.logo}>
-        <AppLogoSmaller />
-      </View>
+    <AuthLayout>
       <Formik
         initialValues={initialValues}
         onSubmit={handleFormSubmit}
         validationSchema={getValidationSchema(step)}
       >
-        {({ handleSubmit }) => (
-          <>
-            {step === 1 && <StepOne handleSubmit={handleSubmit} />}
-            {step === 2 && <StepTwo handleSubmit={handleSubmit} />}
-            {step === 3 && (
-              <StepThree
-                handleSubmit={handleSubmit}
-                states={validStates}
-                isSubmitting={isSubmitting}
-              />
-            )}
-          </>
-        )}
+        {({ handleSubmit, setTouched, validateForm }) => {
+          return (
+            <>
+              {step === 1 && <StepOne handleSubmit={handleSubmit} />}
+              {step === 2 && (
+                <StepTwo
+                  handleSubmit={() =>
+                    handleNextClick(validateForm, setTouched, handleSubmit)
+                  }
+                  isSubmitting={isSubmitting}
+                />
+              )}
+            </>
+          );
+        }}
       </Formik>
-    </ScrollView>
+    </AuthLayout>
   );
 };
-
-const styles = StyleSheet.create({
-  logo: {
-    zIndex: 1000,
-    top: -20,
-    alignItems: 'center',
-    margin: 0,
-  },
-  container: {
-    height: '100%',
-    padding: 20,
-  },
-  formContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 14,
-  },
-});

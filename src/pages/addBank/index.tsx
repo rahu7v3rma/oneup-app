@@ -25,32 +25,39 @@ const AddBank: FunctionComponent<Props> = ({}: Props) => {
   const { themeColors } = useTheme();
   const styles = createStyles(themeColors);
 
-  const validationSchema = Yup.object().shape({
-    routingNumber: Yup.string().required('Please enter routing number'),
-    accountNumber: Yup.string().required('Please enter account number'),
-    cardNumber: Yup.string()
-      .required('Please enter card number')
-      .test('test-card-number', 'Invalid card number', (value) => {
-        const validation = valid.number(value || '');
-        return validation.isValid;
-      }),
-    expiration: Yup.string()
-      .required('Please enter expiration')
-      .test('test-expiry', 'Invalid expiry date', (value) => {
-        const validation = valid.expirationDate(value || '');
-        return validation.isValid;
-      }),
-    cvv: Yup.string()
-      .required('Please enter cvv')
-      .test('test-cvv', 'Invalid CVV', function (value) {
-        const { cardNumber } = this.parent;
-        const cardData = valid.number(cardNumber || '');
-        const codeSize = cardData.card ? cardData.card.code.size : undefined;
-        const validation = valid.cvv(value || '', codeSize);
-        return validation.isValid;
-      }),
-    zipcode: Yup.string().required('Please enter zipcode'),
-  });
+  const validationSchema = Yup.object().shape(
+    addingType === 'bank'
+      ? {
+          routingNumber: Yup.string().required('Please enter routing number'),
+          accountNumber: Yup.string().required('Please enter account number'),
+        }
+      : {
+          cardNumber: Yup.string()
+            .required('Please enter card number')
+            .test('test-card-number', 'Invalid card number', (value) => {
+              const validation = valid.number(value || '');
+              return validation.isValid;
+            }),
+          expiration: Yup.string()
+            .required('Please enter expiration')
+            .test('test-expiry', 'Invalid expiry date', (value) => {
+              const validation = valid.expirationDate(value || '');
+              return validation.isValid;
+            }),
+          cvv: Yup.string()
+            .required('Please enter cvv')
+            .test('test-cvv', 'Invalid CVV', function (value) {
+              const { cardNumber } = this.parent;
+              const cardData = valid.number(cardNumber || '');
+              const codeSize = cardData.card
+                ? cardData.card.code.size
+                : undefined;
+              const validation = valid.cvv(value || '', codeSize);
+              return validation.isValid;
+            }),
+          zipcode: Yup.string().required('Please enter zipcode'),
+        },
+  );
 
   const handleAddBank = () => {
     Toast.show({

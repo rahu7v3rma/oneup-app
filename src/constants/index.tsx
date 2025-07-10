@@ -145,4 +145,16 @@ const gameChats = [
   },
 ];
 
-export { gameRecapData, upcomingGames, gameChats };
+const coinString = {
+  BUY_COINS_TITLE: 'Buy Coins',
+  BALANCE_LABEL: 'Balance',
+};
+
+const coinPacks = [
+  { id: '1', amount: 2500, bonus: 1, price: '$ 3.99' },
+  { id: '2', amount: 5000, bonus: 2, price: '$ 5.99' },
+  { id: '3', amount: 25000, bonus: 3, price: '$ 7.99', popular: true },
+  { id: '4', amount: 50000, bonus: 4, price: '$ 9.99' },
+];
+
+export { gameRecapData, upcomingGames, gameChats, coinString, coinPacks };

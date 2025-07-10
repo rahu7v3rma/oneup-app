@@ -1,29 +1,23 @@
 import { CommonActions, useNavigation } from '@react-navigation/native';
+import AuthLayout from '@shared/authLayout';
+import Text from '@shared/text';
 import { Formik } from 'formik';
 import React, { useContext, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Dimensions } from 'react-native';
 import * as Yup from 'yup';
 
-import AppLogo from '../../../assets/svgs/appLogo';
 import { AuthContext } from '../../context/authContext';
 import { streamChatService } from '../../services/streamChat';
 import CheckboxField from '../../shared/Checkboxfield';
 import InputField from '../../shared/inputField';
 import LoginButton from '../../shared/loginButton';
 import { Fonts } from '../../theme/fonts';
-import { useTheme } from '../../theme/ThemeProvider';
 import { useThemeStyles } from '../../theme/ThemeStylesProvider';
 
+const { height } = Dimensions.get('window');
 const Login = () => {
   const { signIn, isEmailVerified } = useContext(AuthContext);
   const navigation = useNavigation();
-  const { themeColors } = useTheme();
   const themStyles = useThemeStyles();
   const [loading, setLoading] = useState(false);
 
@@ -87,33 +81,25 @@ const Login = () => {
   };
 
   return (
-    <View style={[themStyles.flex1, { backgroundColor: themeColors.appBG }]}>
-      <ScrollView
-        style={themStyles.flex1}
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <AuthLayout logoSmall={false}>
+      <Formik
+        initialValues={initialValues}
+        onSubmit={handleLogin}
+        validationSchema={validationSchema}
       >
-        <View style={styles.logo}>
-          <AppLogo />
-        </View>
-        <Formik
-          initialValues={initialValues}
-          onSubmit={handleLogin}
-          validationSchema={validationSchema}
-        >
-          {({ handleSubmit, values, setFieldValue }) => (
-            <>
+        {({ handleSubmit, values, setFieldValue }) => (
+          <View style={styles.form}>
+            <View>
               <InputField
                 name="email"
-                placeholder="Enter your email"
+                placeholder="Email"
                 maskEmail={values.enableFaceID}
               />
               <View style={themStyles.mt3_1} />
               {!values.enableFaceID && (
                 <InputField
                   name="password"
-                  placeholder="Enter your password"
+                  placeholder="Password"
                   secureTextEntry
                 />
               )}
@@ -125,6 +111,10 @@ const Login = () => {
                     maskEmail(values.email);
                     console.log('mask', maskEmail(values.email));
                   }}
+                  textStyle={{
+                    ...themStyles.checkBoxText,
+                    fontFamily: Fonts.InterRegular,
+                  }}
                 />
                 <TouchableOpacity
                   onPress={() => {
@@ -133,62 +123,52 @@ const Login = () => {
                       : navigation.navigate('ForgotPassword' as never);
                   }}
                 >
-                  <Text style={[styles.forgot, themStyles.themeBtnTextColor]}>
-                    {!values.enableFaceID ? 'Forgot Password' : 'Use Password'}
+                  <Text style={[styles.forgot, themStyles.textGreen]}>
+                    {!values.enableFaceID ? 'Forgot Password?' : 'Use Password'}
                   </Text>
                 </TouchableOpacity>
               </View>
+            </View>
+            <View style={styles.registerWrapper}>
               <View style={styles.submitBtn}>
                 <LoginButton
-                  title="Login"
+                  title="Log in"
                   onPress={handleSubmit}
                   showFaceIDIcon={values.enableFaceID}
                   loading={loading}
                 />
               </View>
-              <Text style={[styles.registerText, themStyles.textSupporting]}>
-                {values.enableFaceID
-                  ? 'Not your account?'
-                  : 'Don’t have an account?'}
+
+              <View style={styles.footerContainer}>
+                <Text style={[styles.registerText, themStyles.footerText]}>
+                  {values.enableFaceID
+                    ? 'Not your account?'
+                    : 'Don’t have an account?'}
+                </Text>
                 <TouchableOpacity
                   onPress={() => navigation.navigate('CreateAccount' as never)}
                 >
-                  <Text
-                    style={[styles.registerNow, themStyles.themeBtnTextColor]}
-                  >
+                  <Text style={[styles.registerNow, themStyles.textGreen]}>
                     {' '}
                     Register Now
                   </Text>
                 </TouchableOpacity>
-              </Text>
-            </>
-          )}
-        </Formik>
-        <View style={styles.footer}>
-          <Text style={[styles.bottomText, themStyles.textSupporting]}>
-            By using the 1-UP app you agree to
-          </Text>
-          <Text style={[styles.link, themStyles.textSupporting]}>
-            <Text style={[styles.bottomText]}>our</Text> Terms of Services &
-            Privacy Policy
-          </Text>
-        </View>
-      </ScrollView>
-    </View>
+              </View>
+            </View>
+          </View>
+        )}
+      </Formik>
+    </AuthLayout>
   );
 };
 
 export default Login;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    flexGrow: 1,
-  },
-  logo: {
-    alignItems: 'center',
-    paddingBottom: 43,
-    paddingTop: 85,
+  form: {
+    flex: 1,
+    justifyContent: 'space-between',
+    marginTop: height * 0.1,
   },
   row: {
     flexDirection: 'row',
@@ -204,30 +184,21 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.WorkSansSemiBold,
     fontSize: 14,
   },
-  registerText: {
-    textAlign: 'center',
+  registerWrapper: {
     marginTop: 29,
-    fontFamily: Fonts.WorkSansMedium,
+  },
+  footerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  registerText: {
+    fontFamily: Fonts.InterRegular,
   },
   registerNow: {
-    fontFamily: Fonts.WorkSansMedium,
-  },
-  footer: {
-    flex: 1,
-    fontFamily: Fonts.WorkSansMedium,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  bottomText: {
-    fontSize: 13,
-    lineHeight: 20,
-    fontFamily: Fonts.WorkSansMedium,
-  },
-  link: {
-    lineHeight: 20,
-    fontFamily: Fonts.WorkSansBold,
+    fontFamily: Fonts.InterBold,
   },
   submitBtn: {
-    marginTop: 43,
+    marginVertical: 20,
   },
 });

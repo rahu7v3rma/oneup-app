@@ -1,5 +1,7 @@
-import IonIcon from '@react-native-vector-icons/ionicons';
-import MaterialIcon from '@react-native-vector-icons/material-icons';
+import FeedIcon from '@components/icons/tabNavigation/FeedIcon';
+import MessageIcon from '@components/icons/tabNavigation/MessageIcon';
+import PlayIcon from '@components/icons/tabNavigation/PlayIcon';
+import ScoreIcon from '@components/icons/tabNavigation/ScoreIcon';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Text, TouchableOpacity, View } from 'react-native';
 
@@ -9,45 +11,31 @@ export const TabBar: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
   const styles = useThemeStyles();
 
   const getIcon = (name: string, isFocused: boolean) => {
+    const color = isFocused
+      ? styles.textPrimary.color
+      : styles.textSupporting.color;
+    const size = 30;
+
     switch (name) {
       case 'Feed':
-        return (
-          <IonIcon
-            name="flash-outline"
-            size={24}
-            style={isFocused ? styles.textPrimary : styles.textMuted}
-          />
-        );
-      case 'Wagers':
-        return (
-          <MaterialIcon
-            name="toll"
-            size={24}
-            style={isFocused ? styles.textPrimary : styles.textMuted}
-          />
-        );
+        return <FeedIcon color={color} size={size} />;
+      case 'Play':
+        return <PlayIcon color={color} size={size} />;
       case 'Scores':
-        return (
-          <MaterialIcon
-            name="scoreboard"
-            size={24}
-            style={isFocused ? styles.textPrimary : styles.textMuted}
-          />
-        );
+        return <ScoreIcon color={color} size={size} />;
       case 'Messages':
-        return (
-          <MaterialIcon
-            name="chat-bubble-outline"
-            size={24}
-            style={isFocused ? styles.textPrimary : styles.textMuted}
-          />
-        );
+        return <MessageIcon color={color} size={size} />;
     }
   };
 
   return (
     <View
-      style={[styles.flexRow, styles.alignItemsEnd, styles.p4, styles.appBG]}
+      style={[
+        styles.flexRow,
+        styles.alignItemsEnd,
+        styles.p4,
+        styles.appHeaderBG,
+      ]}
     >
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;

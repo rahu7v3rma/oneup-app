@@ -1,16 +1,12 @@
+import { GradientBackground } from '@components/GradientBackground';
 import { createNavigationContainerRef } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
   NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
 import React, { FunctionComponent, useContext } from 'react';
-import {
-  Platform,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthContext } from '../context/authContext';
 import { useDeepLinking } from '../hooks';
@@ -20,7 +16,6 @@ import IdentityAcknowledgment from '../pages/identityAcknowledgment';
 import Login from '../pages/login';
 import { RegisterPage } from '../pages/register';
 import ResetPassword from '../pages/resetPassword';
-import { useTheme } from '../theme/ThemeProvider';
 
 import AppNavigator from './AppNavigator';
 
@@ -38,13 +33,20 @@ type Props = Record<string, never>;
 
 const AppNavigation: FunctionComponent<Props> = ({}: Props) => {
   useDeepLinking();
-  const { themeColors } = useTheme();
   const { user, loading } = useContext(AuthContext);
 
+  // don't remove this code below, use the GradientBackground.tsx as a wrapper in you component and add Spacer.tsx below, eg. <GradientBackground> <Spacer /> <Component /> </GradientBackground>
   return loading ? null : (
-    <View style={[styles.container, { backgroundColor: themeColors.appBG }]}>
-      <StatusBar backgroundColor={themeColors.appBG} />
-      <SafeAreaView style={styles.safeAreaView}>
+    <GradientBackground style={styles.container}>
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
+      />
+      <SafeAreaView
+        style={styles.safeAreaView}
+        edges={['bottom', 'left', 'right']}
+      >
         <Stack.Navigator
           initialRouteName={user ? 'AppNavigator' : 'Login'}
           screenOptions={{
@@ -85,14 +87,13 @@ const AppNavigation: FunctionComponent<Props> = ({}: Props) => {
           />
         </Stack.Navigator>
       </SafeAreaView>
-    </View>
+    </GradientBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? undefined : 40,
   },
   safeAreaView: {
     flex: 1,

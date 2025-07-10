@@ -1,13 +1,18 @@
 import AppLogo from './appLogo';
+import AppLogoLarge from './appLogoLarge';
 import Bank from './bank';
+import BankLogo from './bankLogo';
 import Betting from './betting';
 import Commanders from './commanders';
 import Eagles from './eagles';
 import Edit from './edit';
 import FaceIdIcon from './faceIdIcon';
+import Info from './info';
 import Logo from './logo';
 import MasterCard from './master-card';
+import MasterLogo from './masterLogo';
 import Paypal from './paypal';
+import PayPalLogo from './payPalLogo';
 import ScoreBoard from './scoreboard';
 import { BrandingWatermark } from './settingSVGs/brandingWatermark';
 import { FingerPrint } from './settingSVGs/fingerPrint';
@@ -26,6 +31,7 @@ export {
   Betting,
   AppLogo,
   FaceIdIcon,
+  Info,
   Edit,
   ProfileIcon,
   LogOut,
@@ -36,4 +42,8 @@ export {
   MasterCard,
   Paypal,
   Bank,
+  AppLogoLarge,
+  MasterLogo,
+  PayPalLogo,
+  BankLogo,
 };

@@ -1,14 +1,8 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useField } from 'formik';
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  StyleSheet,
-  Platform,
-} from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 import CalendarIcon from '../../assets/svgs/calendarIcon';
 import { useTheme } from '../theme/ThemeProvider';
@@ -33,56 +27,71 @@ const DateInputField = ({ name, placeHolder }: Props) => {
     }
   };
 
+  const getInitialDate = () => {
+    const parts = field.value?.split('/');
+    if (parts?.length === 3) {
+      const [month, day, year] = parts;
+      const parsedDate = new Date(`${year}-${month}-${day}`);
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+    }
+    return new Date();
+  };
+
   const isEmpty = !field.value;
 
   return (
-    <View style={styles.inputContainer}>
+    <LinearGradient
+      colors={['#151A20', '#1B2128']}
+      start={{ x: 0.2, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.inputContainer}
+    >
       <Pressable
         style={[
           styles.inputWrapper,
           themeStyles.ph4,
           themeStyles.input,
           meta.touched && meta.error ? themeStyles.errorInputBorder : {},
+          styles.transparent,
         ]}
         onPress={() => setShowPicker(true)}
       >
-        <TextInput
-          style={[themeStyles.flex1, themeStyles.inputText]}
-          value={field.value}
-          editable={false}
-          placeholder=""
-          pointerEvents="none"
-        />
-        {isEmpty && (
+        {isEmpty ? (
           <View style={styles.placeholderContainer}>
-            <Text
-              style={[
-                styles.placeholderLine1,
-                themeStyles.inputText,
-                themeStyles.textSupporting,
-                { color: themeColors.mutedText },
-              ]}
-            >
-              {placeHolder}
-            </Text>
-            <Text
-              style={[
-                styles.placeholderLine2,
-                themeStyles.inputText,
-                themeStyles.textSupporting,
-                { color: themeColors.mutedText },
-              ]}
-            >
-              MM / DD / YYYY
-            </Text>
+            <View style={themeStyles.flex1}>
+              <Text
+                style={[
+                  themeStyles.inputText,
+                  { color: themeColors.slateGray },
+                ]}
+              >
+                {placeHolder}
+              </Text>
+            </View>
+            <View>
+              <CalendarIcon />
+            </View>
+          </View>
+        ) : (
+          <View style={styles.placeholderContainer}>
+            <View style={themeStyles.flex1}>
+              <Text
+                style={[themeStyles.inputText, { color: themeColors.text }]}
+              >
+                {field.value}
+              </Text>
+            </View>
+            <View>
+              <CalendarIcon />
+            </View>
           </View>
         )}
-        <CalendarIcon />
       </Pressable>
-
       {showPicker && (
         <DateTimePicker
-          value={field.value ? new Date(field.value) : new Date()}
+          value={getInitialDate()}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleChange}
@@ -95,7 +104,7 @@ const DateInputField = ({ name, placeHolder }: Props) => {
           {meta.error}
         </Text>
       )}
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -112,22 +121,13 @@ const styles = StyleSheet.create({
     height: 56,
     position: 'relative',
   },
+  transparent: {
+    backgroundColor: 'transparent',
+  },
   placeholderContainer: {
-    position: 'absolute',
-    display: 'flex',
-    alignSelf: 'flex-start',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  placeholderLine1: {
-    fontSize: 11,
-    lineHeight: 13,
-    fontWeight: '500',
-  },
-  placeholderLine2: {
-    fontSize: 11,
-    color: '#888',
-    marginTop: 2,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   errorText: {
     marginTop: 8,

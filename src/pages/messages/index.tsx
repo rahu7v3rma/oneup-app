@@ -1,5 +1,8 @@
+import CardBgGradient from '@components/CardBgGradient';
+import { GradientBackground } from '@components/GradientBackground';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Spacer from '@shared/Spacer';
 import Text from '@shared/text';
 import { SportsTeam } from 'api/types';
 import React, {
@@ -21,9 +24,9 @@ import {
 } from 'react-native';
 
 import { fetchTeams, fetchUpcomingEvents } from '../../api/match';
+import GameChatHeader from '../../components/GameChat/components/GameChatHeader';
 import { AppStackParamList } from '../../navigation/AppNavigator';
 import { streamChatService } from '../../services/streamChat';
-import TopProfileBar from '../../shared/TopProfileBar';
 import { ThemeColors } from '../../theme/colors';
 import { Fonts } from '../../theme/fonts';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -33,6 +36,14 @@ import { UpcomingGame } from '../../types/match';
 import { renderLogo } from '../../utils/logoRenderer';
 
 type Props = Record<string, never>;
+
+const ItemSeparator = () => <View style={itemSeparatorStyles.container} />;
+
+const itemSeparatorStyles = StyleSheet.create({
+  container: {
+    width: 12,
+  },
+});
 
 const Messages: FunctionComponent<Props> = () => {
   const themeStyles = useThemeStyles();
@@ -253,80 +264,175 @@ const Messages: FunctionComponent<Props> = () => {
     }
   }, [loadingMore, hasNextPage, page, loadUpcomingGames]);
 
-  const renderUpcomingGame = ({ item }: { item: UpcomingGame }) => (
-    <TouchableOpacity
-      onPress={() => {
-        const { gameTime: formattedTime, gameDate: formattedDate } =
-          formatGameDateTime(item.datetime);
-        navigation.navigate('GameChat', {
-          gameId: item.id.toString(),
-          homeTeam: item.teams[0].name,
-          awayTeam: item.teams[1].name,
-          homeTeamLogo: item.teams[0].logo,
-          awayTeamLogo: item.teams[1].logo,
-          gameTime: formattedTime,
-          gameDate: formattedDate,
-          gameType: 'Upcoming Game',
-        });
-      }}
-      style={[
-        styles.upcomingGamesContainer,
-        themeStyles.mt4,
-        themeStyles.mr3,
-        themeStyles.br10,
-      ]}
-    >
-      <View style={[themeStyles.flexRow, themeStyles.justifyContentBetween]}>
-        <Text style={styles.upcomingGamesHeaderTitle}>{item?.users} Users</Text>
-        <Text
-          style={[
-            styles.upcomingGamesHeaderTitle,
-            styles.upcomingGamesHeaderTitleColor,
-          ]}
-        >
-          {item?.wagers} Wagers
-        </Text>
-      </View>
-
-      {item?.teams.map((team) => (
-        <View
-          key={team?.id}
-          style={[
-            themeStyles.flexRow,
-            themeStyles.justifyContentBetween,
-            team?.id > 0 && themeStyles.mt1,
-          ]}
-        >
-          <View style={[themeStyles.flexRow, themeStyles.alignItemsCenter]}>
-            {renderLogo(team?.logo, styles, 16, 16)}
-            <Text style={styles.upcomingGamesTeam}>{team?.name}</Text>
-            <Text style={styles.upcomingGamesMatches}>{team?.record}</Text>
-          </View>
-          <View style={themeStyles.flexRow}>
-            {team?.points.map((point, idx) => (
+  const renderUpcomingGame = ({ item }: { item: UpcomingGame }) => {
+    const { gameTime: formattedTime, gameDate: formattedDate } =
+      formatGameDateTime(item.datetime);
+    // Example odds, replace with real data if available
+    const homeOdds = item.teams[0]?.points;
+    const awayOdds = item.teams[1]?.points;
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          const { gameTime: gameTimeFormatted, gameDate: gameDateFormatted } =
+            formatGameDateTime(item.datetime);
+          navigation.navigate('GameChat', {
+            gameId: item.id.toString(),
+            homeTeam: item.teams[0].name,
+            awayTeam: item.teams[1].name,
+            homeTeamLogo: item.teams[0].logo,
+            awayTeamLogo: item.teams[1].logo,
+            gameTime: gameTimeFormatted,
+            gameDate: gameDateFormatted,
+            gameType: 'Upcoming Game',
+          });
+        }}
+      >
+        <CardBgGradient>
+          <View style={[themeStyles.br10, styles.gameCardContainer]}>
+            {/* Main Row: Left (teams), Right (odds) */}
+            <View style={[themeStyles.flexRow, themeStyles.alignItemsCenter]}>
+              {/* Left: Both teams */}
               <View
-                key={idx}
+                style={[themeStyles.flex2, themeStyles.justifyContentCenter]}
+              >
+                <View
+                  style={[themeStyles.flexRow, themeStyles.alignItemsCenter]}
+                >
+                  {renderLogo(item.teams[0]?.logo, styles, 28, 28)}
+                  <Text
+                    style={[
+                      themeStyles.fontSize18,
+                      themeStyles.fontWeightBold,
+                      styles.teamNameText,
+                    ]}
+                  >
+                    {item.teams[0]?.name}
+                  </Text>
+                  <Text
+                    style={[
+                      themeStyles.fontSize18,
+                      themeStyles.fontWeigthMedium,
+                      themeStyles.textSupporting,
+                      styles.teamRecordText,
+                    ]}
+                  >
+                    {item.teams[0]?.record || '4 - 8'}
+                  </Text>
+                </View>
+                <View
+                  style={[themeStyles.flexRow, themeStyles.alignItemsCenter]}
+                >
+                  {renderLogo(item.teams[1]?.logo, styles, 28, 28)}
+                  <Text
+                    style={[
+                      themeStyles.fontSize18,
+                      themeStyles.fontWeightBold,
+                      styles.teamNameText,
+                    ]}
+                  >
+                    {item.teams[1]?.name}
+                  </Text>
+                  <Text
+                    style={[
+                      themeStyles.fontSize18,
+                      themeStyles.fontWeigthMedium,
+                      themeStyles.textSupporting,
+                      styles.teamRecordText,
+                    ]}
+                  >
+                    {item.teams[1]?.record || '4 - 8'}
+                  </Text>
+                </View>
+              </View>
+              {/* Right: Both odds rows */}
+              <View
                 style={[
-                  styles.upcomingGamesPointsBox,
-                  themeStyles.appBG,
-                  themeStyles.alignItemsCenter,
-                  themeStyles.justifyContentCenter,
-                  idx === 1 && themeStyles.mh1,
+                  themeStyles.flex1,
+                  themeStyles.alignItemsEnd,
+                  themeStyles.justifyContentStart,
                 ]}
               >
-                <Text style={styles.upcomingGamesPoint}>{point}</Text>
+                <View
+                  style={[
+                    themeStyles.flexRow,
+                    themeStyles.alignItemsCenter,
+                    styles.oddsRowContainer,
+                  ]}
+                >
+                  {homeOdds.map((odd, idx) => (
+                    <View key={idx} style={styles.oddsPillFinal}>
+                      <Text
+                        style={[themeStyles.fontWeigthMedium, styles.oddsText]}
+                      >
+                        {odd}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+                <View
+                  style={[
+                    themeStyles.flexRow,
+                    themeStyles.alignItemsCenter,
+                    styles.oddsRowContainer,
+                  ]}
+                >
+                  {awayOdds.map((odd, idx) => (
+                    <View key={idx} style={styles.oddsPillFinal}>
+                      <Text
+                        style={[themeStyles.fontWeigthMedium, styles.oddsText]}
+                      >
+                        {odd}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
               </View>
-            ))}
+            </View>
+            {/* Footer Row: left (date), right (games) */}
+            <View
+              style={[
+                themeStyles.flexRow,
+                themeStyles.alignItemsCenter,
+                themeStyles.justifyContentBetween,
+                styles.footerRowContainer,
+              ]}
+            >
+              <View style={styles.footerDateTimeFinal}>
+                <Text
+                  style={[
+                    themeStyles.textInterSemiBold,
+                    styles.footerDateFinal,
+                  ]}
+                >{`SUNDAY, ${formattedDate}`}</Text>
+                <Text
+                  style={[
+                    themeStyles.textInterSemiBold,
+                    styles.footerTimeFinal,
+                  ]}
+                >
+                  {' '}
+                  <Text style={styles.footerTimeBoldFinal}>
+                    {formattedTime}
+                  </Text>
+                </Text>
+              </View>
+              <View style={styles.gamesCountPillFinal}>
+                <Text
+                  style={[
+                    themeStyles.textInterSemiBold,
+                    themeStyles.textSupporting,
+                    styles.gamesCountTextFinal,
+                  ]}
+                >
+                  5 GAMES
+                </Text>
+              </View>
+            </View>
           </View>
-        </View>
-      ))}
-      <Text style={styles.upcomingGamesDateTime}>
-        {item?.datetime instanceof Date
-          ? formatGameDateTime(item.datetime).gameDate
-          : item?.datetime}
-      </Text>
-    </TouchableOpacity>
-  );
+        </CardBgGradient>
+      </TouchableOpacity>
+    );
+  };
 
   const renderUserChannel = ({ item }: { item: UserChannel }) => {
     const timeAgo = streamChatService.getTimeAgo(item.lastActivity);
@@ -341,8 +447,11 @@ const Messages: FunctionComponent<Props> = () => {
 
     return (
       <TouchableOpacity
-        key={item.id}
-        style={[themeStyles.mt4, themeStyles.flexRow]}
+        style={[
+          themeStyles.flexRow,
+          themeStyles.alignItemsCenter,
+          styles.userChannelContainer,
+        ]}
         onPress={() => {
           streamChatService
             .markChannelAsRead(item.id, item.type)
@@ -373,15 +482,21 @@ const Messages: FunctionComponent<Props> = () => {
           navigation.navigate('GameChat', navigationData);
         }}
       >
-        <View style={[styles.gameChatsTeamBox, themeStyles.pRelative]}>
+        <View
+          style={[
+            themeStyles.justifyContentCenter,
+            themeStyles.alignItemsCenter,
+            styles.teamLogoContainer,
+          ]}
+        >
           {item.gameData?.homeTeamLogo && item.gameData?.awayTeamLogo ? (
             <>
               <View style={styles.gameChatsLogoOne}>
-                {renderLogo(item.gameData.homeTeamLogo, styles, 28, 15)}
+                {renderLogo(item.gameData.homeTeamLogo, styles, 32, 18)}
               </View>
               <View style={styles.diagonalLine} />
               <View style={styles.gameChatsLogoTwo}>
-                {renderLogo(item.gameData.awayTeamLogo, styles, 28, 15)}
+                {renderLogo(item.gameData.awayTeamLogo, styles, 32, 18)}
               </View>
             </>
           ) : (
@@ -401,52 +516,60 @@ const Messages: FunctionComponent<Props> = () => {
           )}
         </View>
 
-        <View style={[themeStyles.flex1, themeStyles.mh3]}>
+        {/* Right: Chat Content */}
+        <View style={[themeStyles.flex1, styles.chatContentContainer]}>
+          {/* Row 1: Game Info + Active Games */}
           <View
-            style={[themeStyles.flexRow, themeStyles.justifyContentBetween]}
+            style={[
+              themeStyles.flexRow,
+              themeStyles.alignItemsCenter,
+              themeStyles.justifyContentBetween,
+              styles.gameInfoRowContainer,
+            ]}
           >
-            <View style={[themeStyles.flexRow, themeStyles.alignItemsCenter]}>
-              <Text style={styles.gameChatsTitle}>
-                {item.gameData?.gameTitle || item.name}
+            <View style={styles.gameInfoPill}>
+              <Text style={styles.gameInfoText}>
+                {homeTeam} @ {awayTeam} {date} {time}
               </Text>
-              {time && date && (
-                <Text style={styles.gameChatsDateTime}>
-                  {time} • {date}
-                </Text>
-              )}
+            </View>
+            <View style={styles.activeGamesPill}>
+              <Text style={styles.activeGamesText}>5 ACTIVE GAMES</Text>
             </View>
           </View>
-          <Text style={styles.gameChatsWagers}>
-            {item.memberCount} members • {item.gameData?.gameType || 'Active'}
-          </Text>
-          <Text style={styles.gameChatDescription}>
-            {item.lastMessage
-              ? (() => {
-                  const fullText = `${item.lastMessage.user.name}: ${item.lastMessage.text}`;
-                  return fullText.length > 80
-                    ? fullText.substring(0, 80) + '...'
-                    : fullText;
-                })()
-              : 'No messages yet'}
-          </Text>
-        </View>
 
-        <View style={[styles.gameChatsThirdCol, themeStyles.alignItemsCenter]}>
-          <Text style={styles.gameChatsTime}>{timeAgo}</Text>
-          {item.unreadCount > 0 && (
-            <View
-              style={[
-                styles.gameChatsMsgCountCircle,
-                themeStyles.mt2,
-                themeStyles.alignItemsCenter,
-                themeStyles.justifyContentCenter,
-              ]}
-            >
-              <Text style={styles.gameChatsMsgCount}>
-                {item.unreadCount > 99 ? '99+' : item.unreadCount}
+          {/* Row 2: Message */}
+          <View
+            style={[
+              themeStyles.flexRow,
+              themeStyles.alignItemsCenter,
+              styles.messageRowContainer,
+            ]}
+          >
+            <Text style={styles.messageText}>
+              <Text style={styles.usernameText}>
+                {item.lastMessage?.user?.name || 'User'}
               </Text>
-            </View>
-          )}
+              {item.lastMessage?.text
+                ? ` ${
+                    item.lastMessage.text.length > 50
+                      ? item.lastMessage.text.substring(0, 50) + '...'
+                      : item.lastMessage.text
+                  }`
+                : ''}
+            </Text>
+          </View>
+
+          {/* Row 3: Time and Unread Count */}
+          <View style={[themeStyles.flexRow, themeStyles.justifyContentEnd]}>
+            <Text style={styles.timeAgoText}>{timeAgo}</Text>
+            {item.unreadCount > 0 && (
+              <View style={styles.unreadCountCircle}>
+                <Text style={styles.unreadCountText}>
+                  {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -456,7 +579,13 @@ const Messages: FunctionComponent<Props> = () => {
     if (!loadingMore) return null;
 
     return (
-      <View style={styles.footerContainer}>
+      <View
+        style={[
+          themeStyles.justifyContentCenter,
+          themeStyles.alignItemsCenter,
+          styles.footerContainer,
+        ]}
+      >
         <ActivityIndicator size="small" />
       </View>
     );
@@ -465,9 +594,17 @@ const Messages: FunctionComponent<Props> = () => {
   const renderUpcomingGamesSection = () => {
     if (loading) {
       return (
-        <View style={styles.upcomingGamesSection}>
-          <Text style={[themeStyles.textDefaultCustom]}>Upcoming Games</Text>
-          <View style={styles.upcomingGamesLoadingContainer}>
+        <View style={[themeStyles.mb5]}>
+          <Text style={[themeStyles.textInterSemiBold, themeStyles.fontSize14]}>
+            Upcoming Games
+          </Text>
+          <View
+            style={[
+              themeStyles.justifyContentCenter,
+              themeStyles.alignItemsCenter,
+              styles.loadingContainer,
+            ]}
+          >
             <ActivityIndicator size="small" />
           </View>
         </View>
@@ -476,11 +613,35 @@ const Messages: FunctionComponent<Props> = () => {
 
     if (upcomingGames.length === 0) {
       return (
-        <View style={styles.upcomingGamesSection}>
-          <Text style={[themeStyles.textDefaultCustom]}>Upcoming Games</Text>
-          <View style={styles.upcomingGamesEmptyContainer}>
-            <Text style={styles.upcomingGamesEmptyText}>No upcoming games</Text>
-            <Text style={styles.upcomingGamesEmptySubText}>
+        <View style={[themeStyles.mb5]}>
+          <Text style={[themeStyles.textInterSemiBold, themeStyles.fontSize14]}>
+            Upcoming Games
+          </Text>
+          <View
+            style={[
+              themeStyles.justifyContentCenter,
+              themeStyles.alignItemsCenter,
+              styles.emptyContainer,
+              { backgroundColor: themeColors.cardBG },
+            ]}
+          >
+            <Text
+              style={[
+                themeStyles.fontSize16,
+                themeStyles.fontWeightSemiBold,
+                themeStyles.textDefault,
+                themeStyles.mb2,
+              ]}
+            >
+              No upcoming games
+            </Text>
+            <Text
+              style={[
+                themeStyles.fontSize14,
+                themeStyles.textMuted,
+                themeStyles.textAlignCenter,
+              ]}
+            >
               Check back later for new games!
             </Text>
           </View>
@@ -489,8 +650,16 @@ const Messages: FunctionComponent<Props> = () => {
     }
 
     return (
-      <View style={styles.upcomingGamesSection}>
-        <Text style={[themeStyles.textDefaultCustom]}>Upcoming Games</Text>
+      <View style={[themeStyles.mb5]}>
+        <Text
+          style={[
+            themeStyles.textInterBold,
+            themeStyles.pv4,
+            themeStyles.fontWeightBold,
+          ]}
+        >
+          Upcoming Games
+        </Text>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -500,6 +669,7 @@ const Messages: FunctionComponent<Props> = () => {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.3}
           ListFooterComponent={renderFooter}
+          ItemSeparatorComponent={ItemSeparator}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -515,7 +685,14 @@ const Messages: FunctionComponent<Props> = () => {
   const renderChannelsContent = () => {
     if (channelsLoading) {
       return (
-        <View style={styles.loadingContainer}>
+        <View
+          style={[
+            themeStyles.flex1,
+            themeStyles.justifyContentCenter,
+            themeStyles.alignItemsCenter,
+            themeStyles.pv10,
+          ]}
+        >
           <ActivityIndicator size="small" />
         </View>
       );
@@ -523,9 +700,18 @@ const Messages: FunctionComponent<Props> = () => {
 
     if (userChannels.length === 0) {
       return (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No game chats yet</Text>
-          <Text style={styles.emptySubText}>
+        <View
+          style={[
+            themeStyles.flex1,
+            themeStyles.justifyContentCenter,
+            themeStyles.alignItemsCenter,
+            themeStyles.pv10,
+          ]}
+        >
+          <Text style={[themeStyles.textInterSemiBold, themeStyles.fontSize14]}>
+            No game chats yet
+          </Text>
+          <Text style={[themeStyles.textInterSemiBold, themeStyles.fontSize14]}>
             Join a game to start chatting with other fans!
           </Text>
         </View>
@@ -537,7 +723,10 @@ const Messages: FunctionComponent<Props> = () => {
         data={userChannels}
         keyExtractor={(item) => item.id}
         renderItem={renderUserChannel}
-        contentContainerStyle={styles.gameChatsFlatList}
+        contentContainerStyle={[
+          themeStyles.flexGrow1,
+          styles.flatListContentContainer,
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -560,118 +749,183 @@ const Messages: FunctionComponent<Props> = () => {
   }, []);
 
   return (
-    <View style={[themeStyles.flex1, themeStyles.appBG]}>
-      <TopProfileBar label="Game Chats" showSearchIcon={false} />
+    <GradientBackground>
+      <View style={themeStyles.appHeaderBG}>
+        <Spacer multiplier={1} />
+        <GameChatHeader
+          themeStyles={themeStyles}
+          containerStyle={themeStyles.appHeaderBG}
+        />
+      </View>
 
-      <View style={[themeStyles.ph4, themeStyles.pt8, styles.mainContainer]}>
+      <View style={[themeStyles.ph4, themeStyles.pt4, themeStyles.flex1]}>
         {renderUpcomingGamesSection()}
 
-        <View style={styles.gameChatsContainer}>
-          <Text style={styles.gameChat}>Your game chats</Text>
+        <View style={themeStyles.flex1}>
+          <Text
+            style={[
+              themeStyles.textInterBold,
+              themeStyles.pv4,
+              themeStyles.fontWeightBold,
+            ]}
+          >
+            Chats
+          </Text>
           {renderChannelsContent()}
         </View>
       </View>
-    </View>
+    </GradientBackground>
   );
 };
 
 const createStyles = (themeColors: ThemeColors) => {
   return StyleSheet.create({
-    mainContainer: {
-      flex: 1,
+    // Using global styles where available, keeping specific styles that don't have global equivalents
+
+    gameCardContainer: {
+      paddingHorizontal: 10,
+      paddingTop: 10,
+      paddingBottom: 10,
+      width: 370,
+      alignSelf: 'center',
     },
-    upcomingGamesSection: {
-      marginBottom: 20,
+
+    teamNameText: {
+      color: '#fff',
+      marginLeft: 12,
+      marginRight: 8,
+      minWidth: 48,
     },
-    upcomingGamesLoadingContainer: {
-      height: 120,
+
+    teamRecordText: {
+      marginRight: 8,
+    },
+
+    oddsRowContainer: {
+      marginBottom: 3,
+      gap: 3,
+    },
+
+    oddsText: {
+      color: '#fff',
+      fontSize: 8,
+    },
+
+    footerRowContainer: {
+      paddingTop: 0,
+      paddingHorizontal: 0,
+      gap: 0,
+    },
+
+    userChannelContainer: {
+      height: 80,
+      backgroundColor: 'transparent',
+      marginBottom: 8,
+    },
+
+    teamLogoContainer: {
+      width: 70,
+      height: 70,
+      borderRadius: 8,
+      backgroundColor: '#23272F',
+      marginRight: 4,
+      overflow: 'hidden',
+    },
+
+    chatContentContainer: {
+      height: '100%',
       justifyContent: 'center',
-      alignItems: 'center',
     },
-    upcomingGamesEmptyContainer: {
+
+    gameInfoRowContainer: {
+      marginBottom: 2,
+    },
+
+    messageRowContainer: {
+      marginBottom: 2,
+      flexWrap: 'nowrap',
+    },
+
+    footerContainer: {
+      width: 50,
+      paddingHorizontal: 10,
+    },
+
+    loadingContainer: {
       height: 120,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: themeColors.cardBG,
+    },
+
+    emptyContainer: {
+      height: 120,
       borderRadius: 10,
       marginTop: 16,
     },
-    upcomingGamesEmptyText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: themeColors.text,
-      marginBottom: 8,
+
+    separatorContainer: {
+      width: 12,
     },
-    upcomingGamesEmptySubText: {
-      fontSize: 14,
-      color: themeColors.mutedText,
-      textAlign: 'center',
-    },
-    upcomingGamesContainer: {
-      backgroundColor: themeColors.cardBG,
-      width: 225,
-      height: 98,
-      padding: 10,
-    },
-    upcomingGamesHeaderTitle: {
-      fontFamily: Fonts.WorkSansSemiBold,
-      fontSize: 8,
-      lineHeight: 14,
-      fontWeight: '600',
-    },
-    logoPlaceholder: {
-      width: 16,
-      height: 16,
-      backgroundColor: '#ddd',
-      borderRadius: 4,
-    },
-    upcomingGamesHeaderTitleColor: {
-      color: themeColors.primary,
-    },
-    upcomingGamesTeamLogo: {
-      width: 16,
-      height: 16,
-    },
-    upcomingGamesTeam: {
-      fontFamily: Fonts.WorkSansRegular,
-      fontWeight: '400',
-      fontSize: 10,
-      lineHeight: 14,
-      width: 40,
-      textAlign: 'center',
-    },
-    upcomingGamesMatches: {
-      fontFamily: Fonts.WorkSansBold,
-      fontWeight: '700',
-      fontSize: 6,
-      lineHeight: 14,
-      color: themeColors.mutedText,
-      width: 20,
-    },
-    upcomingGamesPointsBox: {
-      width: 34,
-      height: 21,
-      borderRadius: 3,
-    },
-    upcomingGamesPoint: {
-      fontFamily: Fonts.WorkSansMedium,
-      fontWeight: '500',
-      fontSize: 6,
-      lineHeight: 14,
-    },
-    upcomingGamesDateTime: {
-      fontFamily: Fonts.WorkSansRegular,
-      fontWeight: '400',
-      fontSize: 6,
-      lineHeight: 14,
-    },
-    gameChatsContainer: {
-      flex: 1,
-    },
-    gameChatsFlatList: {
-      flexGrow: 1,
+
+    flatListContentContainer: {
       paddingBottom: 20,
     },
+
+    itemSeparatorStyle: {
+      width: 12,
+    },
+
+    oddsPillFinal: {
+      width: 36,
+      height: 36,
+      borderRadius: 3,
+      backgroundColor: '#22262E',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    dividerFinal: {
+      height: 1,
+      backgroundColor: '#404353',
+      marginTop: 18,
+      marginBottom: 0,
+      marginHorizontal: -20,
+    },
+    footerDateTimeFinal: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: '#1C2027',
+      borderRadius: 3,
+      paddingHorizontal: 8,
+      paddingVertical: 7,
+      fontSize: 8,
+      flex: 0.65,
+    },
+    footerDateFinal: {
+      fontWeight: '600',
+      fontSize: 10,
+      textTransform: 'uppercase',
+    },
+    footerTimeFinal: {
+      fontWeight: '600',
+      fontSize: 10,
+    },
+    footerTimeBoldFinal: {
+      color: '#fff',
+      fontWeight: 'bold',
+    },
+    gamesCountPillFinal: {
+      backgroundColor: '#22262E',
+      borderRadius: 3,
+      paddingHorizontal: 10,
+      paddingVertical: 7,
+      flex: 0.3,
+      alignItems: 'center',
+    },
+    gamesCountTextFinal: {
+      textTransform: 'uppercase',
+      fontSize: 8,
+    },
+
     gameChatsTeamBox: {
       width: 56,
       height: 56,
@@ -698,17 +952,17 @@ const createStyles = (themeColors: ThemeColors) => {
       alignItems: 'center',
     },
     teamInitials: {
-      fontSize: 8,
+      fontSize: 12,
       fontWeight: 'bold',
       color: themeColors.primary,
     },
     diagonalLine: {
       position: 'absolute',
-      width: 57.57,
+      width: 90,
       height: 1,
       backgroundColor: themeColors.primary,
-      top: 28,
-      right: -1,
+      top: 34,
+      right: -10,
       transform: [{ rotate: '-45deg' }],
     },
     gameChat: {
@@ -762,25 +1016,7 @@ const createStyles = (themeColors: ThemeColors) => {
       fontSize: 9,
       lineHeight: 16,
     },
-    footerContainer: {
-      width: 50,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 10,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 40,
-    },
 
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 40,
-    },
     emptyText: {
       fontSize: 16,
       fontWeight: '600',
@@ -815,6 +1051,68 @@ const createStyles = (themeColors: ThemeColors) => {
       fontSize: 12,
       lineHeight: 14,
       color: themeColors.text,
+    },
+
+    gameInfoPill: {
+      backgroundColor: '#23272F',
+      borderRadius: 5,
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+      marginRight: 6,
+      maxWidth: '65%',
+    },
+    gameInfoText: {
+      color: '#ADB5BD',
+      fontWeight: '600',
+      fontSize: 8,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    activeGamesPill: {
+      backgroundColor: '#23272F',
+      borderRadius: 5,
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+      alignSelf: 'flex-start',
+    },
+    activeGamesText: {
+      color: '#2ECC71',
+      fontWeight: '600',
+      fontSize: 8,
+      textTransform: 'uppercase',
+    },
+    usernameText: {
+      color: '#fff',
+      fontWeight: '700',
+      fontSize: 12,
+      marginRight: 4,
+    },
+    messageText: {
+      color: '#ADB5BD',
+      fontWeight: '400',
+      fontSize: 12,
+      flexShrink: 1,
+    },
+    timeAgoText: {
+      color: '#ADB5BD',
+      fontWeight: '500',
+      fontSize: 9,
+      textTransform: 'uppercase',
+    },
+    unreadCountCircle: {
+      minWidth: 22,
+      height: 20,
+      borderRadius: 11,
+      backgroundColor: '#2ECC71',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 8,
+      paddingHorizontal: 6,
+    },
+    unreadCountText: {
+      color: '#fff',
+      fontWeight: '700',
+      fontSize: 9,
     },
   });
 };

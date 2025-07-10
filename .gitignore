@@ -21,6 +21,7 @@ DerivedData
 *.ipa
 *.xcuserstate
 **/.xcode.env.local
+*.dSYM.zip
 
 # Android/IntelliJ
 #
@@ -77,3 +78,5 @@ yarn-error.log
 # env files
 .env
 .env*
+
+fastlane

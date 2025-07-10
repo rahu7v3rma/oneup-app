@@ -1,4 +1,6 @@
+import { GradientBackground } from '@components/GradientBackground';
 import { useIsFocused } from '@react-navigation/native';
+import Spacer from '@shared/Spacer';
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import {
   FlatList,
@@ -8,14 +10,16 @@ import {
   Text,
   AppState,
   ViewToken,
+  StyleSheet,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 import { fetchPosts } from '../../api/posts';
 import { Post } from '../../api/types';
 import { AuthContext } from '../../context/authContext';
 import { PostSelectors } from '../../reducers/post';
 import FeedCard from '../../shared/FeedCard';
-import TopProfileBar from '../../shared/TopProfileBar';
+import FeedHeader from '../../shared/FeedHeader';
 import { useThemeStyles } from '../../theme/ThemeStylesProvider';
 
 type OnViewableItemsChangedInfo = {
@@ -191,82 +195,105 @@ export default function FeedsPage({ navigation }: FeedsPageProps) {
   }
 
   return (
-    <View style={[themeStyles.flex1, themeStyles.appBG]}>
-      <TopProfileBar label="Discover" showSearchIcon={false} />
-      <FlatList
-        data={feedData}
-        keyExtractor={(item) => item.id.toString()}
-        viewabilityConfig={viewConfigRef.current}
-        onViewableItemsChanged={onViewableItemsChanged.current}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
-        renderItem={({ item }) => (
-          <View style={themeStyles.mv2}>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('PostDetails', { postId: item.id })
-              }
-            >
-              <FeedCard
-                feedDetails={item}
-                onPressLike={(isLiked, reactionType, reactionData) => {
-                  setFeedData((prevData: Post[]) =>
-                    prevData.map((post) => {
-                      if (post.id === item.id) {
-                        let updatedLikes = [...(post.likes || [])];
-                        const userReactionIndex = updatedLikes.findIndex(
-                          (like) => like.user.email === user.email,
-                        );
+    <GradientBackground>
+      <Spacer multiplier={1.5} />
+      <FeedHeader label="Feed" />
+      <View style={styles.container}>
+        <FlatList
+          data={feedData}
+          keyExtractor={(item) => item.id.toString()}
+          viewabilityConfig={viewConfigRef.current}
+          onViewableItemsChanged={onViewableItemsChanged.current}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          renderItem={({ item }) => (
+            <View style={themeStyles.mv2}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('PostDetails', { postId: item.id })
+                }
+              >
+                <FeedCard
+                  feedDetails={item}
+                  onPressLike={(isLiked, reactionType, reactionData) => {
+                    setFeedData((prevData: Post[]) =>
+                      prevData.map((post) => {
+                        if (post.id === item.id) {
+                          let updatedLikes = [...(post.likes || [])];
+                          const userReactionIndex = updatedLikes.findIndex(
+                            (like) => like.user.email === user.email,
+                          );
 
-                        if (isLiked && reactionType && reactionData) {
-                          if (userReactionIndex !== -1) {
-                            updatedLikes[userReactionIndex] = reactionData;
+                          if (isLiked && reactionType && reactionData) {
+                            if (userReactionIndex !== -1) {
+                              updatedLikes[userReactionIndex] = reactionData;
+                            } else {
+                              updatedLikes.push(reactionData);
+                            }
                           } else {
-                            updatedLikes.push(reactionData);
+                            if (userReactionIndex !== -1) {
+                              updatedLikes.splice(userReactionIndex, 1);
+                            }
                           }
-                        } else {
-                          if (userReactionIndex !== -1) {
-                            updatedLikes.splice(userReactionIndex, 1);
-                          }
+
+                          const updatedEmojiCounts = updatedLikes.reduce(
+                            (acc, like) => {
+                              acc[like.reaction_type] =
+                                (acc[like.reaction_type] || 0) + 1;
+                              return acc;
+                            },
+                            {} as Record<string, number>,
+                          );
+
+                          return {
+                            ...post,
+                            is_like: isLiked,
+                            reaction_type: reactionType || undefined,
+                            likes: updatedLikes,
+                            likes_count: updatedLikes.length,
+                            emoji_counts: updatedEmojiCounts,
+                          };
                         }
-
-                        const updatedEmojiCounts = updatedLikes.reduce(
-                          (acc, like) => {
-                            acc[like.reaction_type] =
-                              (acc[like.reaction_type] || 0) + 1;
-                            return acc;
-                          },
-                          {} as Record<string, number>,
-                        );
-
-                        return {
-                          ...post,
-                          is_like: isLiked,
-                          reaction_type: reactionType || undefined,
-                          likes: updatedLikes,
-                          likes_count: updatedLikes.length,
-                          emoji_counts: updatedEmojiCounts,
-                        };
-                      }
-                      return post;
-                    }),
-                  );
-                }}
-                isPlaying={isFocused && item.id.toString() === playingId}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-        showsVerticalScrollIndicator={false}
-        style={themeStyles.ph4}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          loading && hasNextPage ? (
-            <ActivityIndicator size="small" style={themeStyles.mv2} />
-          ) : null
-        }
-      />
-    </View>
+                        return post;
+                      }),
+                    );
+                  }}
+                  isPlaying={isFocused && item.id.toString() === playingId}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+          showsVerticalScrollIndicator={false}
+          style={themeStyles.ph4}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loading && hasNextPage ? (
+              <ActivityIndicator size="small" style={themeStyles.mv2} />
+            ) : null
+          }
+        />
+        <LinearGradient
+          colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.3)']}
+          style={styles.bottomFade}
+          pointerEvents="none"
+        />
+      </View>
+    </GradientBackground>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
+  bottomFade: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    zIndex: 1,
+  },
+});

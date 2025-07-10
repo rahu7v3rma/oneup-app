@@ -1,7 +1,7 @@
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import Ionicons from '@react-native-vector-icons/ionicons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 
 import { useThemeStyles } from '../theme/ThemeStylesProvider';
 
@@ -27,25 +27,21 @@ const BackButton = ({ onPress }: BackButtonProps) => {
   };
 
   return (
-    <TouchableOpacity style={styles.iconContainer} onPress={backHandler}>
-      <FontAwesome6
-        name="chevron-left"
-        size={16}
-        style={themeStyles.textDefault}
-        iconStyle="solid"
+    <TouchableOpacity onPress={backHandler}>
+      <Ionicons
+        name="arrow-back-sharp"
+        size={24}
+        style={themeStyles.textMuted}
       />
     </TouchableOpacity>
   );
 };
-const styles = StyleSheet.create({
-  iconContainer: {
-    borderWidth: 1,
-    borderColor: '#fff',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    alignSelf: 'flex-start',
-  },
-});
+// const styles = StyleSheet.create({
+//   iconContainer: {
+//     paddingVertical: 10,
+//     paddingHorizontal: 12,
+//     alignSelf: 'flex-start',
+//   },
+// });
 
 export default BackButton;

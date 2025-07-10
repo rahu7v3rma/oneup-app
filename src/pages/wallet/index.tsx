@@ -1,161 +1,182 @@
+import { GradientBackground } from '@components/GradientBackground';
+import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useNavigation } from '@react-navigation/native';
-import React, { JSX, useRef } from 'react';
+import { BottomSheetRef } from '@shared/bottomSheet';
+import Button from '@shared/button';
+import ForwardButton from '@shared/forwardButton';
+import Header from '@shared/header';
+import PaymentSheet from '@shared/PaymentSheet';
+import Text from '@shared/text';
+import { RootNavigationProp } from 'navigation';
+import React, { useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinkedAccount } from 'types/linkedAccount';
 
-import { Bank, MasterCard, Paypal } from '../../../assets/svgs';
-import AddButton from '../../shared/addButton';
-import BackButton from '../../shared/backButton';
-import { BottomSheetRef } from '../../shared/bottomSheet';
-import ForwardButton from '../../shared/forwardButton';
-import PaymentSheet from '../../shared/PaymentSheet';
-import Text from '../../shared/text';
+import { MasterCard } from '../../../assets/svgs';
 import { ThemeColors } from '../../theme/colors';
 import { Fonts } from '../../theme/fonts';
 import { useTheme } from '../../theme/ThemeProvider';
-import { RootNavigationProp } from '../resetPassword';
+import { useThemeStyles } from '../../theme/ThemeStylesProvider';
 
-const linkedAccounts: {
-  id: string;
-  type: string;
-  navigate: 'CardDetails';
-  name: string;
-  details: string;
-  icon: JSX.Element;
-}[] = [
+const linkedAccounts: LinkedAccount[] = [
   {
     id: '1',
     type: 'Mastercard',
     name: 'Mastercard',
     navigate: 'CardDetails',
-    details: 'Ending in 1884',
     icon: <MasterCard width={36} height={25} />,
+    cardNumber: '**** **** **** 1234',
+    cardFee: '3%',
+    cardExpiry: '02/28',
   },
   {
     id: '2',
-    type: 'Mastercard',
-    name: 'Mastercard',
-    navigate: 'CardDetails',
-    details: 'Ending in 1984',
-    icon: <MasterCard width={36} height={25} />,
-  },
-  {
-    id: '3',
     type: 'Paypal',
     name: 'Paypal',
     navigate: 'CardDetails',
-    details: 'smijus2004',
-    icon: <Paypal width={36} height={25} />,
+    icon: <MasterCard width={36} height={25} />,
+    cardNumber: 'paypal.account.2007',
+    cardFee: '3%',
+    cardExpiry: '03/26',
   },
   {
-    id: '2',
+    id: '3',
     type: 'Bank',
-    name: 'America First Credit Union',
+    name: 'Bank',
     navigate: 'CardDetails',
-    details: 'Ending in 1884',
-    icon: <Bank width={30} height={25} />,
+    icon: <MasterCard width={36} height={25} />,
+    cardNumber: '**** **** **** 9101',
+    cardFee: '3%',
+    cardExpiry: '04/30',
   },
 ];
 
 const Wallet = () => {
   const theme = useTheme();
+  const themeStyles = useThemeStyles();
   const styles = getStyles(theme.themeColors);
 
   const navigation = useNavigation<RootNavigationProp>();
+  const [accounts, setAccounts] = useState(linkedAccounts);
 
-  const onGoBack = () => {
-    navigation.goBack();
-  };
-
-  const onAccountPress = () => {};
   const ref = useRef<BottomSheetRef>(null);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <BackButton onPress={onGoBack} />
-        <Text style={styles.headerText}>Wallet</Text>
-      </View>
-
-      <View style={styles.balanceCard}>
-        <View style={styles.balanceInfo}>
-          <Text style={styles.balanceLabel}>Balance</Text>
-          <View style={styles.balanceAmountContainer}>
-            <Text>$</Text>
-            <Text style={styles.balanceAmount}>12,500.00</Text>
+    <GradientBackground>
+      <SafeAreaView style={styles.container}>
+        <Header title="Wallet" />
+        <Text style={styles.balanceLabel}>Balance</Text>
+        <Text style={[styles.balance, themeStyles.pt10]}>12, 500</Text>
+        <View
+          style={[
+            themeStyles.flexRow,
+            themeStyles.justifyContentBetween,
+            themeStyles.mt4,
+            themeStyles.mb16,
+            themeStyles.gap2,
+          ]}
+        >
+          <View style={themeStyles.flex1}>
+            <Button
+              title="Transfer"
+              onPress={() => {
+                navigation.navigate('TransferMoneyScreen' as never);
+              }}
+              color="secondary"
+              size="lg"
+              textStyle={themeStyles.springGreen}
+            />
+          </View>
+          <View style={themeStyles.flex1}>
+            <Button
+              title="Add Money"
+              onPress={() => {
+                navigation.navigate('AddMoneyScreen' as never);
+              }}
+              size="lg"
+            />
           </View>
         </View>
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.transferButton, styles.balanceActionButtons]}
-            onPress={() => {
-              navigation.navigate('TransferMoneyScreen' as never);
-            }}
+        <View
+          style={[
+            themeStyles.flexRow,
+            themeStyles.justifyContentBetween,
+            themeStyles.alignItemsCenter,
+            themeStyles.mb3,
+          ]}
+        >
+          <Text style={styles.linkedAccountsLabel}>Linked Accounts</Text>
+          <LinearGradient
+            colors={['#242B33', '#191B20']}
+            start={{ x: 1, y: 1 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.plusButton}
           >
-            <Text style={[styles.transferText, styles.balanceButtonText]}>
-              Transfer
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.addMoneyButton, styles.balanceActionButtons]}
-            onPress={() => {
-              navigation.navigate('AddMoneyScreen' as never);
-            }}
-          >
-            <Text style={[styles.addMoneyText, styles.balanceButtonText]}>
-              Add money
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <Text style={styles.linkedAccountsLabel}>Linked Accounts</Text>
-
-      <FlatList
-        data={linkedAccounts}
-        keyExtractor={(item) => item.id}
-        style={styles.accountList}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() =>
-              navigation?.navigate({
-                name: item.navigate,
-                params: item,
-              })
-            }
-          >
-            <View style={styles.accountItem}>
-              <View style={styles.accountIcon}>{item.icon}</View>
-              <View style={styles.accountInfo}>
-                <Text style={styles.accountType}>{item.name}</Text>
-                <Text style={styles.accountDetails}>{item.details}</Text>
-              </View>
-              <View style={styles.arrowIcon}>
-                <ForwardButton
-                  onPress={onAccountPress}
-                  style={styles.arrowIcon}
-                  size={20}
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-        )}
-        ListFooterComponent={
-          <TouchableOpacity
-            style={styles.addAccount}
-            onPress={() => ref.current?.open()}
-          >
-            <AddButton
+            <FontAwesome6
+              name="plus"
+              iconStyle="solid"
+              size={11.25}
+              style={themeStyles.springGreen}
               onPress={() => ref.current?.open()}
-              size={20}
-              color={theme.themeColors.btnBG}
             />
-            <Text style={styles.addAccountText}>Add an Account</Text>
-            <PaymentSheet ref={ref} />
-          </TouchableOpacity>
-        }
-      />
-    </SafeAreaView>
+          </LinearGradient>
+        </View>
+        <FlatList
+          data={accounts}
+          keyExtractor={(item) => item.id}
+          style={styles.accountList}
+          renderItem={({ item }) => (
+            <LinearGradient
+              colors={['#151A20', '#141B22']}
+              start={{ x: 1, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={[themeStyles.mb1]}
+            >
+              <TouchableOpacity
+                onPress={() =>
+                  navigation?.navigate({
+                    name: item.navigate,
+                    params: {
+                      ...item,
+                      onRemoveAccount: (id: string) => {
+                        setAccounts((prev) =>
+                          prev.filter((acc) => acc.id !== id),
+                        );
+                      },
+                    },
+                  })
+                }
+              >
+                <View
+                  style={[
+                    styles.accountItem,
+                    themeStyles.flexRow,
+                    themeStyles.alignItemsCenter,
+                  ]}
+                >
+                  <View style={styles.accountIcon}>{item.icon}</View>
+                  <View style={styles.accountInfo}>
+                    <Text style={styles.accountType}>{item.name}</Text>
+                    <Text style={styles.accountDetails}>{item.cardExpiry}</Text>
+                  </View>
+                  <View style={styles.arrowIcon}>
+                    <ForwardButton
+                      onPress={() => {}}
+                      style={styles.arrowIcon}
+                      size={15}
+                      color="#2F363C"
+                    />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </LinearGradient>
+          )}
+          ListFooterComponent={<PaymentSheet ref={ref} />}
+        />
+      </SafeAreaView>
+    </GradientBackground>
   );
 };
 
@@ -163,106 +184,48 @@ const getStyles = (theme: ThemeColors) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.blue1,
       paddingHorizontal: 16,
       paddingTop: 5,
     },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 25,
-      gap: 13,
-    },
-    headerText: {
-      fontSize: 16,
-      color: theme.text,
-      fontFamily: Fonts.RobotoRegular,
-      verticalAlign: 'middle',
-      lineHeight: 20,
-    },
-    balanceCard: {
-      backgroundColor: theme.cardBG,
-      borderRadius: 10,
-      flexDirection: 'column',
-      gap: 27,
-      paddingHorizontal: 10,
-      paddingVertical: 15,
-      marginBottom: 25,
-    },
-    balanceInfo: {
-      flexDirection: 'column',
-      gap: 2,
-    },
     balanceLabel: {
       color: theme.text,
-      fontSize: 8,
-      fontFamily: Fonts.WorkSansSemiBold,
-      lineHeight: 14,
-      letterSpacing: 0,
+      fontSize: 13,
+      fontFamily: Fonts.InterSemiBold,
+      fontWeight: '600',
+      lineHeight: 20,
     },
-    balanceAmountContainer: {
-      flexDirection: 'row',
-    },
-    balanceAmount: {
+    balance: {
       color: theme.text,
-      fontSize: 20,
-      letterSpacing: 0,
-      fontFamily: Fonts.WorkSansRegular,
-    },
-    buttonRow: {
-      flexDirection: 'row',
-      gap: 5,
-    },
-    balanceActionButtons: {
-      borderWidth: 1,
-      flex: 1,
-      width: '50%',
-      paddingVertical: 5,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      borderRadius: 8,
-    },
-    transferButton: {
-      borderColor: theme.btnBG,
-    },
-    addMoneyButton: {
-      backgroundColor: theme.btnBG,
-    },
-    transferText: {
-      color: theme.btnBG,
-      fontFamily: Fonts.InterBold,
-      fontSize: 12,
-      lineHeight: 16,
-    },
-    addMoneyText: {
-      color: theme.text,
-    },
-    balanceButtonText: {
-      fontFamily: Fonts.InterBold,
-      fontSize: 12,
-      lineHeight: 16,
+      fontSize: 38,
+      fontFamily: Fonts.InterSemiBold,
+      lineHeight: 21.94,
+      fontWeight: '600',
     },
     linkedAccountsLabel: {
       color: theme.text,
-      fontFamily: Fonts.RobotoRegular,
+      fontFamily: Fonts.InterSemiBold,
+      fontWeight: '600',
       fontSize: 13,
-      lineHeight: 14,
-      marginBottom: 10,
+      lineHeight: 20,
+    },
+    plusButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: 'red',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     accountList: {
-      padding: 10,
       flexGrow: 0,
-      backgroundColor: theme.blue2,
       gap: 4,
-      borderRadius: 12,
+      borderRadius: 8,
     },
     accountItem: {
-      flexDirection: 'row',
+      height: 80,
       gap: 10,
-      borderBottomColor: theme.gray1,
-      borderBottomWidth: 1,
-      paddingVertical: 10,
+      paddingVertical: 15,
+      paddingHorizontal: 10,
     },
     accountIcon: {
       width: 36,
@@ -270,40 +233,25 @@ const getStyles = (theme: ThemeColors) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    accountType: {
-      color: theme.textWhite,
-      fontFamily: Fonts.WorkSansMedium,
-      fontSize: 12,
-      lineHeight: 14,
-      letterSpacing: 0,
-      verticalAlign: 'middle',
-    },
     accountInfo: {
       flexDirection: 'column',
     },
-    accountDetails: {
+    accountType: {
       color: theme.textWhite,
-      fontSize: 10,
-      fontFamily: Fonts.WorkSansLight,
-      verticalAlign: 'middle',
+      fontFamily: Fonts.InterSemiBold,
+      fontWeight: '600',
+      fontSize: 12,
       lineHeight: 14,
-      letterSpacing: 0,
+    },
+    accountDetails: {
+      color: theme.dimGray,
+      fontSize: 12,
+      fontFamily: Fonts.InterRegular,
+      lineHeight: 14,
     },
     arrowIcon: {
       marginLeft: 'auto',
       verticalAlign: 'middle',
-    },
-    addAccount: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 8,
-      gap: 0,
-    },
-    addAccountText: {
-      color: theme.textWhite,
-      marginLeft: 10,
-      fontFamily: Fonts.WorkSansMedium,
-      fontSize: 12,
     },
   });
 };

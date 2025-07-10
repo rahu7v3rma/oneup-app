@@ -13,9 +13,7 @@
 
      <style name="BootTheme" parent="Theme.BootSplash.EdgeToEdge">
           <item name="darkContentBarsStyle">true</item>
-
-          <item name="bootSplashBackground">@color/bootsplash_background</item>
-          <item name="bootSplashLogo">@drawable/bootsplash_logo</item>
+          <item name="android:windowBackground">@drawable/bootsplash</item> <!-- This is critical -->
           <item name="postBootSplashTheme">@style/AppTheme</item>
      </style>
 </resources>

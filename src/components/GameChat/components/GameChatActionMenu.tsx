@@ -1,5 +1,14 @@
+import { BlurView } from '@react-native-community/blur';
 import type React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  Platform,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MessageState } from '../../../types/GameChat';
 
@@ -11,6 +20,8 @@ interface GameChatActionMenuProps {
   onReply: (message: MessageState) => void;
   onWagers: () => void;
   onReport: () => void;
+  menuPosition?: { x: number; y: number };
+  chatViewLayout?: { x: number; y: number; width: number; height: number };
 }
 
 const GameChatActionMenu: React.FC<GameChatActionMenuProps> = ({
@@ -21,16 +32,85 @@ const GameChatActionMenu: React.FC<GameChatActionMenuProps> = ({
   onReply,
   onWagers,
   onReport,
+  menuPosition,
+  chatViewLayout,
 }) => {
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
   if (!showActionMenu || !selectedMessage) return null;
+
+  const MENU_WIDTH = 200;
+  const MENU_HEIGHT = 250;
+  const MARGIN = 20; // Margin from edges
+
+  // Calculate safe area bounds with better bottom margin for keyboard/input area
+  let safeLeft, safeRight, safeTop, safeBottom;
+  const BOTTOM_MARGIN = 120; // Extra margin for keyboard and input area
+
+  if (chatViewLayout) {
+    safeLeft = chatViewLayout.x + MARGIN;
+    safeRight = chatViewLayout.x + chatViewLayout.width - MARGIN;
+    safeTop = chatViewLayout.y + MARGIN;
+    safeBottom =
+      chatViewLayout.y + chatViewLayout.height - MARGIN - BOTTOM_MARGIN;
+  } else {
+    safeLeft = insets.left + MARGIN;
+    safeRight = screenWidth - insets.right - MARGIN;
+    safeTop = insets.top + MARGIN;
+    safeBottom = screenHeight - insets.bottom - MARGIN - BOTTOM_MARGIN;
+  }
+
+  // Calculate menu position while keeping it within safe bounds
+  let menuX = menuPosition?.x ?? safeLeft;
+  let menuY = menuPosition?.y ?? safeTop;
+
+  // Adjust X position to keep menu within horizontal bounds
+  if (menuX + MENU_WIDTH > safeRight) {
+    menuX = safeRight - MENU_WIDTH;
+  }
+  if (menuX < safeLeft) {
+    menuX = safeLeft;
+  }
+
+  // Adjust Y position to keep menu within vertical bounds
+  if (menuY + MENU_HEIGHT > safeBottom) {
+    // Try to show above the tap if not enough space below
+    const aboveY = (menuPosition?.y ?? safeTop) - MENU_HEIGHT - 12;
+    if (aboveY > safeTop) {
+      menuY = aboveY;
+    } else {
+      // If not enough space above either, position it at the top with some margin
+      menuY = safeTop + 10;
+    }
+  }
+  if (menuY < safeTop) {
+    menuY = safeTop + 10;
+  }
 
   return (
     <View style={styles.actionMenuOverlay}>
+      <BlurView
+        style={styles.actionMenuBackdrop}
+        blurType={Platform.OS === 'ios' ? 'dark' : 'dark'}
+        blurAmount={10}
+        reducedTransparencyFallbackColor="rgba(0, 0, 0, 0.8)"
+      />
       <TouchableOpacity
         style={styles.actionMenuBackdrop}
         onPress={onCloseActionMenu}
+        activeOpacity={1}
       />
-      <View style={styles.actionMenuContainer}>
+      <View
+        style={[
+          styles.actionMenuContainer,
+          styles.actionMenuPositioned,
+          {
+            top: menuY,
+            left: menuX,
+          },
+        ]}
+      >
         <View style={styles.actionMenu}>
           <TouchableOpacity
             style={styles.actionMenuItem}
@@ -91,7 +171,7 @@ const GameChatActionMenu: React.FC<GameChatActionMenuProps> = ({
         </View>
 
         <View style={styles.modalDescription}>
-          <Text style={styles.modalDescriptionText}>
+          <Text style={styles.modalDescriptionText} numberOfLines={2}>
             {selectedMessage.text}
           </Text>
         </View>
@@ -107,10 +187,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
     zIndex: 1000,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
   },
   actionMenuBackdrop: {
     position: 'absolute',
@@ -122,6 +199,7 @@ const styles = StyleSheet.create({
   actionMenuContainer: {
     alignItems: 'flex-start',
     justifyContent: 'center',
+    width: 200, // Match MENU_WIDTH constant
   },
   actionMenu: {
     borderWidth: 1,
@@ -129,7 +207,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#090F17',
     borderRadius: 12,
     paddingVertical: 8,
-    minWidth: 200,
+    width: '100%',
     shadowColor: '#fff',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -161,7 +239,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    maxWidth: '80%',
+    width: '100%',
+    marginTop: 8,
     shadowColor: '#fff',
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 0.3,
@@ -173,6 +252,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     textAlign: 'left',
+  },
+  actionMenuPositioned: {
+    position: 'absolute',
   },
 });
 

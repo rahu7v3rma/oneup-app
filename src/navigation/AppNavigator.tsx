@@ -3,6 +3,7 @@ import { StatusBar } from 'react-native';
 import { Chat, OverlayProvider } from 'stream-chat-react-native';
 
 import { chatClient } from '../lib/streamClient';
+import BuyCoins from '../pages/buyCoins/BuyCoins';
 import GameChatScreen from '../pages/messages/GameChatScreen';
 import PostDetails from '../pages/postDetails';
 import { useTheme } from '../theme/ThemeProvider';
@@ -27,6 +28,7 @@ export type AppStackParamList = {
   Messages: undefined;
   SetttingsNav: undefined;
   WalletNav: undefined;
+  BuyCoins: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -44,6 +46,7 @@ export default function AppNavigator() {
           <Stack.Screen name="PostDetails" component={PostDetails} />
           <Stack.Screen name="SetttingsNav" component={SettingNav} />
           <Stack.Screen name="WalletNav" component={WalletNav} />
+          <Stack.Screen name="BuyCoins" component={BuyCoins} />
         </Stack.Navigator>
       </Chat>
     </OverlayProvider>

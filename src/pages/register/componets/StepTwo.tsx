@@ -1,15 +1,15 @@
 import Button from '@shared/button';
+import Text from '@shared/text';
 import { FC } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { ThemeStyles } from 'styles';
+import { StyleSheet, View } from 'react-native';
 
 import DateInputField from '../../../shared/dateInput';
 import InputField from '../../../shared/inputField';
-import { Fonts } from '../../../theme/fonts';
 import { useThemeStyles } from '../../../theme/ThemeStylesProvider';
 
 export interface IStepTwo {
   handleSubmit: () => void;
+  isSubmitting: boolean;
 }
 /**
  * StepTwo Component
@@ -32,89 +32,44 @@ export interface IStepTwo {
  * - Center-aligned header text and clean spacing between fields.
  */
 
-export const StepTwo: FC<IStepTwo> = ({ handleSubmit }) => {
+export const StepTwo: FC<IStepTwo> = ({ handleSubmit, isSubmitting }) => {
   const themeStyles = useThemeStyles();
 
-  const styles = getStyles(themeStyles);
-
   return (
-    <ScrollView style={styles.stepOneContainer}>
-      <Text style={styles.largeText}>Let's get some details about you</Text>
+    <>
+      <Text style={themeStyles.authTitle}>Account details</Text>
       <View style={styles.formContainer}>
-        <InputField name="firstName" placeholder="First Name" />
-        <InputField name="lastName" placeholder="Last Name" />
-        <DateInputField name="birthDay" placeHolder="Date of Birth" />
+        <InputField name="firstName" placeholder="First name" />
+        <InputField name="lastName" placeholder="Last name" />
+        <DateInputField name="birthDay" placeHolder="DOB" />
+        <InputField name="phone" placeholder="Phone" numbersOnly />
       </View>
       <View style={styles.buttonView}>
-        <Button size="lg" title="Next" onPress={handleSubmit} />
+        <Button
+          size="lg"
+          title="Continue"
+          onPress={handleSubmit}
+          loading={isSubmitting}
+        />
       </View>
-    </ScrollView>
+    </>
   );
 };
 
-const getStyles = (themeStyles: ThemeStyles) =>
-  StyleSheet.create({
-    stepOneContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-    },
-    formContainer: {
-      marginTop: 20,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 15,
-    },
-    largeText: {
-      ...themeStyles.textSupporting,
-      fontWeight: '700',
-      fontSize: 30,
-      lineHeight: 39,
-      letterSpacing: -0.3,
-      textAlign: 'center',
-      fontFamily: Fonts.RobotoBold,
-      paddingHorizontal: 15,
-    },
-    littleText: {
-      textAlign: 'center',
-      fontWeight: 500,
-      lineHeight: 14,
-      fontSize: 14,
-      letterSpacing: 0,
-    },
-    containerWithValidation: {
-      marginTop: 20,
-      flexDirection: 'row',
-      paddingHorizontal: 32,
-      justifyContent: 'center',
-      columnGap: 1,
-      flexWrap: 'wrap',
-    },
-    column: {
-      flexDirection: 'column',
-      justifyContent: 'center',
-      gap: 4,
-    },
-    cell: {
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      gap: 4,
-    },
-    rulesText: {
-      color: 'white',
-      fontFamily: Fonts.WorkSansRegular,
-      fontWeight: 500,
-      lineHeight: 12,
-      fontSize: 12,
-      letterSpacing: 0,
-      textAlign: 'left',
-    },
-    textUnderButton: {
-      textAlign: 'center',
-      fontFamily: Fonts.WorkSansRegular,
-      fontSize: 14,
-      lineHeight: 14,
-    },
-    buttonView: {
-      marginTop: 27,
-    },
-  });
+const styles = StyleSheet.create({
+  formContainer: {
+    marginTop: 60,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 15,
+  },
+  column: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  buttonView: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+});

@@ -1,109 +1,159 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Button from '@shared/button';
+import CheckboxField from '@shared/Checkboxfield';
+import Header from '@shared/header';
+import { Formik } from 'formik';
 import React from 'react';
-import { Image, Platform, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { LinkedAccount } from 'types/linkedAccount';
+import * as Yup from 'yup';
 
-import BankIcon from '../../../assets/pngs/account_balance.png';
-import MasterCardIcon from '../../../assets/pngs/mastercard.png';
-import PayPalIcon from '../../../assets/pngs/paypalLogo.png';
+import { MasterLogo, PayPalLogo, BankLogo } from '../../../assets/svgs';
 import { RootNavigationProp } from '../../navigation';
-import BackButton from '../../shared/backButton';
-import ToggleSwitch from '../../shared/toggleSwitch';
 import { lightColors, ThemeColors } from '../../theme/colors';
 import { Fonts } from '../../theme/fonts';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useThemeStyles } from '../../theme/ThemeStylesProvider';
 
-const CardDetails = ({
-  cardNumber,
-  cardExpiry,
-  cardFee,
-}: {
-  cardName: string;
-  cardNumber: string;
-  cardExpiry: string;
-  cardFee: string;
-}) => {
+const CardDetails = () => {
   const { themeColors } = useTheme();
   const styles = createStyles(themeColors);
+  const themeStyles = useThemeStyles();
   const navigation = useNavigation<RootNavigationProp>();
   const route = useRoute();
-  const { type: linkedAccountType, name } = route.params as {
-    type: 'Mastercard' | 'Paypal' | 'Bank';
-    name: string;
+  const { name, onRemoveAccount, id, type, cardNumber, cardExpiry, cardFee } =
+    route.params as LinkedAccount & {
+      onRemoveAccount: (id: string) => void;
+    };
+
+  const getCardOrAccount = () => {
+    if (type === 'Mastercard') {
+      return 'card';
+    } else {
+      return 'account';
+    }
+  };
+
+  const getLogo = () => {
+    if (type === 'Mastercard') {
+      return <MasterLogo />;
+    } else if (type === 'Paypal') {
+      return <PayPalLogo />;
+    } else {
+      return <BankLogo />;
+    }
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.backButtonContainer}>
-        <BackButton
-          onPress={() => {
-            navigation.goBack();
-          }}
-        />
-        <Text style={styles.backButtonText}>{linkedAccountType}</Text>
-      </View>
+      <Header title={type} />
       <View
         style={[
-          styles.cardContainer,
-          linkedAccountType === 'Paypal' && styles.cardContainerPaypal,
+          themeStyles.flexRow,
+          themeStyles.justifyContentBetween,
+          themeStyles.mb3,
         ]}
       >
-        <Text
-          style={[
-            styles.cardName,
-            linkedAccountType === 'Paypal' && styles.paypalText,
-          ]}
-        >
-          {name}
+        <Text style={styles.cardAccountTitle}>Your {getCardOrAccount()}</Text>
+        <Text style={styles.percentFee}>
+          <Text style={styles.percent}>{cardFee}</Text> fee
         </Text>
-        <Text style={styles.cardNumber}>{cardNumber}</Text>
-        <Text style={styles.cardExpiry}>Exp: {cardExpiry}</Text>
-        {linkedAccountType === 'Mastercard' && (
-          <Image
-            source={MasterCardIcon}
-            style={[styles.icon, styles.cardIcon]}
+      </View>
+      <LinearGradient
+        colors={['#151A20', '#141B22']}
+        start={{ x: 1, y: 1 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.linearGradient}
+      >
+        <View style={styles.card}>
+          <Text style={styles.cardName}>{name}</Text>
+          <Text style={styles.cardNumber}>{cardNumber}</Text>
+          <View
+            style={[
+              themeStyles.flexRow,
+              themeStyles.justifyContentBetween,
+              themeStyles.alignItemsCenter,
+              themeStyles.mt11,
+            ]}
+          >
+            <View>
+              <Text style={styles.expires}>Expires</Text>
+              <Text style={styles.cardExpiry}>{cardExpiry}</Text>
+            </View>
+            <View>{getLogo()}</View>
+          </View>
+        </View>
+      </LinearGradient>
+
+      <Button
+        title="Remove"
+        style={styles.removeButton}
+        textStyle={styles.removeBtnText}
+        size="lg"
+        color="secondary"
+        onPress={() => {
+          Alert.alert(
+            'Remove Card',
+            'Are you sure you want to remove this card?',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Remove',
+                style: 'destructive',
+                onPress: () => {
+                  onRemoveAccount(id); // <- update the list in Wallet
+                  navigation.goBack();
+                },
+              },
+            ],
+          );
+        }}
+      />
+      <Formik
+        initialValues={{ defaultPayingMethod: false }}
+        onSubmit={() => {}}
+        validationSchema={Yup.object().shape({
+          defaultPayingMethod: Yup.boolean()
+            .oneOf([true], 'You must acknowledge the Default paying method')
+            .required('Required'),
+        })}
+      >
+        {() => (
+          <CheckboxField
+            name="defaultPayingMethod"
+            label="Default paying method"
+            textStyle={styles.checkboxText}
+            containerStyle={themeStyles.mt6}
           />
         )}
-        {linkedAccountType === 'Paypal' && (
-          <Image source={PayPalIcon} style={[styles.icon, styles.paypalIcon]} />
-        )}
-        {linkedAccountType === 'Bank' && (
-          <Image source={BankIcon} style={[styles.icon, styles.bankIcon]} />
-        )}
-      </View>
-      <View style={styles.cardDefaultMethodContainer}>
-        <ToggleSwitch value={true} onValueChange={() => {}} />
-        <Text style={styles.cardFundingMethodText}>
-          Make this card your default funding method?
-        </Text>
-      </View>
-      {linkedAccountType === 'Bank' ? (
-        <View style={styles.cardDefaultMethodContainer}>
-          <ToggleSwitch value={true} onValueChange={() => {}} />
-          <Text style={styles.cardFundingMethodText}>
-            Make this your default funding bank?
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.cardFeesContainer}>
-          <Text style={styles.cardFeeText}>Fee</Text>
-          <Text style={styles.cardFeeAmountText}>{cardFee}</Text>
-        </View>
+      </Formik>
+      {type === 'Bank' && (
+        <Formik
+          initialValues={{ defaultFundingBank: false }}
+          onSubmit={() => {}}
+          validationSchema={Yup.object().shape({
+            defaultFundingBank: Yup.boolean()
+              .oneOf([true], 'You must acknowledge the default funding bank')
+              .required('Required'),
+          })}
+        >
+          {() => (
+            <CheckboxField
+              name="defaultFundingBank"
+              label="Make this default funding bank"
+              textStyle={styles.checkboxText}
+              containerStyle={themeStyles.mt6}
+            />
+          )}
+        </Formik>
       )}
-
-      <Text style={styles.removeText}>Remove</Text>
     </View>
   );
 };
 
 export const CardDetailsPreview = () => {
-  return (
-    <CardDetails
-      cardName="MasterCard"
-      cardNumber="Card ending in 3726"
-      cardExpiry="11/25"
-      cardFee="3% for sending money with credit cards"
-    />
-  );
+  return <CardDetails />;
 };
 
 const createStyles = (themeColors: ThemeColors) => {
@@ -114,106 +164,78 @@ const createStyles = (themeColors: ThemeColors) => {
       paddingHorizontal: 20,
       paddingVertical: 10,
     },
-    backButtonContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 15,
+    cardAccountTitle: {
+      fontFamily: Fonts.InterSemiBold,
+      fontSize: 13,
+      fontWeight: '600',
+      lineHeight: 20,
+      color: themeColors.textWhite,
     },
-    backButtonText: {
-      fontSize: 16,
-      fontFamily: Fonts.RobotoRegular,
-      color: themeColors.text,
+    percentFee: {
+      fontFamily: Fonts.InterSemiBold,
+      fontSize: 13,
+      fontWeight: '600',
+      lineHeight: 20,
+      color: themeColors.dimGray,
     },
-    cardContainer: {
-      marginTop: 30,
-      height: 200,
-      backgroundColor: themeColors.cardBG,
-      borderRadius: 20,
+    percent: {
+      color: themeColors.springGreen,
+    },
+    linearGradient: {
+      height: 180,
+      borderRadius: 8,
+    },
+    card: {
+      paddingHorizontal: 15,
       paddingVertical: 20,
-      paddingHorizontal: 25,
-      position: 'relative',
-    },
-    cardContainerPaypal: {
-      backgroundColor: themeColors.textWhite,
     },
     cardName: {
-      fontSize: 16,
-      fontFamily: Fonts.WorkSansBold,
+      fontSize: 17,
+      fontFamily: Fonts.InterSemiBold,
+      fontWeight: '600',
+      lineHeight: 20,
       color: themeColors.textWhite,
     },
     paypalText: {
       color: lightColors.text,
     },
     cardNumber: {
-      marginTop: 5,
-      fontSize: 14,
-      fontFamily: Fonts.WorkSansMedium,
+      paddingTop: 25,
+      fontSize: 18,
+      lineHeight: 20,
+      fontFamily: Fonts.InterMedium,
+      fontWeight: '500',
       color: themeColors.gray1,
+    },
+    expires: {
+      fontFamily: Fonts.InterRegular,
+      fontSize: 12,
+      lineHeight: 14,
+      color: themeColors.dimGray,
     },
     cardExpiry: {
-      fontSize: 14,
-      fontFamily: Fonts.WorkSansMedium,
-      color: themeColors.gray1,
-      position: 'absolute',
-      bottom: 40,
-      left: 25,
-    },
-    icon: {
-      position: 'absolute',
-      bottom: 36,
-      right: 30,
-      objectFit: 'contain',
-    },
-    cardIcon: {
-      width: 59,
-      height: 59,
-    },
-    paypalIcon: {
-      width: 72,
-      height: 18,
-    },
-    bankIcon: {
-      width: 24,
-      height: 24,
-    },
-    cardFeesContainer: {
-      marginTop: 15,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    cardFeeSwitchContainer: {
-      flexDirection: 'column',
-      gap: 15,
-    },
-    cardFeeText: {
-      fontSize: 12,
-      fontFamily: Fonts.WorkSansMedium,
-      color: themeColors.gray1,
-    },
-    cardDefaultMethodContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginTop: 30,
-    },
-    cardFeeAmountText: {
-      fontSize: 12,
-      fontFamily: Fonts.WorkSansBold,
+      fontSize: 18,
+      lineHeight: 20,
+      fontFamily: Fonts.InterMedium,
+      fontWeight: '500',
       color: themeColors.textWhite,
+      paddingTop: 3,
     },
-    removeText: {
-      fontSize: 16,
-      fontFamily: Fonts.WorkSansMedium,
-      color: themeColors.errorText,
+    removeButton: {
       position: 'absolute',
       bottom: Platform.OS === 'ios' ? 20 : 50,
+      width: '100%',
       alignSelf: 'center',
     },
-    cardFundingMethodText: {
-      fontSize: 12,
-      fontFamily: Fonts.WorkSansRegular,
-      color: themeColors.gray1,
+    removeBtnText: {
+      color: themeColors.roseRed,
+    },
+    checkboxText: {
+      fontFamily: Fonts.InterRegular,
+      fontWeight: '400',
+      fontSize: 14,
+      lineHeight: 14,
+      color: themeColors.slate,
     },
   });
 };

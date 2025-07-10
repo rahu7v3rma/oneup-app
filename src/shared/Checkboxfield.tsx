@@ -20,7 +20,13 @@ interface Props {
   containerStyle?: TextStyle;
 }
 
-const CheckboxField = ({ name, label, onChange, containerStyle }: Props) => {
+const CheckboxField = ({
+  name,
+  label,
+  onChange,
+  textStyle,
+  containerStyle,
+}: Props) => {
   const themeStyles = useThemeStyles();
   const [field, , helpers] = useField(name);
 
@@ -45,7 +51,7 @@ const CheckboxField = ({ name, label, onChange, containerStyle }: Props) => {
             name={'check'}
             size={12}
             iconStyle={'solid'}
-            style={[themeStyles.textDefault]}
+            style={themeStyles.checkBoxTick}
           />
         )}
       </View>
@@ -54,6 +60,7 @@ const CheckboxField = ({ name, label, onChange, containerStyle }: Props) => {
           styles.label,
           themeStyles.textSupporting,
           field.value && styles.fontWeight400,
+          textStyle,
         ]}
       >
         {label}

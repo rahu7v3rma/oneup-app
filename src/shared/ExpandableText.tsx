@@ -15,11 +15,21 @@ const ExpandableText: React.FC<ExpandableTextProps> = ({ text, maxWords }) => {
   const truncatedText = text.split(' ').slice(0, maxWords).join(' ');
 
   return (
-    <Text style={styles.textSupportingSmall}>
+    <Text
+      style={[
+        styles.textInterRegular,
+        styles.fontSize13,
+        styles.textSupporting,
+      ]}
+    >
       {isExpanded ? text : truncatedText}
       {text.length > truncatedText.length && (
         <Text
-          style={styles.truncationLink}
+          style={[
+            styles.textInterMedium,
+            styles.fontSize13,
+            styles.truncationLink,
+          ]}
           onPress={() => setIsExpanded(!isExpanded)}
         >
           {isExpanded ? ' Show Less' : ' Read More'}

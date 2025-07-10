@@ -1,6 +1,6 @@
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AuthLayout from '@shared/authLayout';
 import { Formik } from 'formik';
 import React, { useState, useEffect, useContext } from 'react';
 import {
@@ -14,7 +14,7 @@ import Toast from 'react-native-toast-message';
 import { type ThemeColors } from 'theme/colors';
 import * as Yup from 'yup';
 
-import { AppLogo } from '../../../assets/svgs';
+import { AppLogo, AppLogoLarge } from '../../../assets/svgs';
 import { AuthContext } from '../../context/authContext';
 import { RootStackParamList } from '../../navigation';
 import BackButton from '../../shared/backButton';
@@ -29,7 +29,7 @@ type ResetPasswordRouteProp = RouteProp<RootStackParamList, 'ResetPassword'>;
 export type RootNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ResetPassword = () => {
-  const themStyles = useThemeStyles();
+  const themeStyles = useThemeStyles();
   const { themeColors } = useTheme();
   const styles = getStyles(themeColors);
   const [submitted, setSubmitted] = useState(false);
@@ -89,10 +89,6 @@ const ResetPassword = () => {
     checkToken();
   }, [token, verifyResetToken]);
 
-  const onBackPress = () => {
-    navigation.goBack();
-  };
-
   const onBackToLogin = () => {
     navigation.navigate('Login' as never);
   };
@@ -108,7 +104,6 @@ const ResetPassword = () => {
           setSubmitted(true);
         }
       } catch (error) {
-        console.error('Error resetting password:', error);
         Toast.show({
           type: 'error',
           text1: 'Reset Failed',
@@ -124,7 +119,7 @@ const ResetPassword = () => {
     return (
       <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color={themeColors.btnBG} />
-        <Text style={[themStyles.textSupporting, styles.loadingText]}>
+        <Text style={[themeStyles.textSupporting, styles.loadingText]}>
           Verifying your reset link...
         </Text>
       </View>
@@ -134,15 +129,15 @@ const ResetPassword = () => {
   if (!tokenValid && !submitted) {
     return (
       <View style={styles.container}>
-        <SafeAreaView style={styles.fullFlex}>
+        <SafeAreaView style={themeStyles.flex1}>
           <BackButton onPress={onBackToLogin} />
           <View style={styles.logo}>
             <AppLogo />
           </View>
-          <Text style={[styles.resetText, themStyles.textSupporting]}>
+          <Text style={[styles.resetText, themeStyles.textSupporting]}>
             Invalid Reset Link
           </Text>
-          <Text style={[themStyles.textSupporting, styles.resetTextDesc]}>
+          <Text style={[themeStyles.textSupporting, styles.resetTextDesc]}>
             The password reset link is invalid or has expired. Please request a
             new password reset link.
           </Text>
@@ -158,205 +153,76 @@ const ResetPassword = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.fullFlex}>
-        <BackButton onPress={onBackPress} />
-        <View style={styles.logo}>
-          <AppLogo />
-        </View>
-        <Text style={[styles.resetText, themStyles.textSupporting]}>
-          Reset Password
-        </Text>
-        <Text style={[themStyles.textSupporting, styles.resetTextDesc]}>
-          {submitted
-            ? 'Your password has been successfully\nupdated. Return to login page to log in.'
-            : 'Your new password must be unique\nfrom those previously used.'}
-        </Text>
-        {!submitted && (
-          <Formik
-            initialValues={initialValues}
-            onSubmit={handleResetPassword}
-            validateOnChange={false}
-            validateOnBlur={false}
-            validationSchema={validationSchema}
-          >
-            {({ handleSubmit, values, isSubmitting }) => {
-              const password = values.password;
-              const confirmPassword = values.confirmPassword;
+    <AuthLayout showLogo={!submitted}>
+      <Formik
+        initialValues={initialValues}
+        onSubmit={handleResetPassword}
+        validateOnChange={false}
+        validateOnBlur={false}
+        validationSchema={validationSchema}
+      >
+        {({ handleSubmit, values }) => {
+          const password = values.password;
+          const confirmPassword = values.confirmPassword;
 
-              const hasLetter = /[A-Za-z]/.test(password);
-              const hasNumber = /[0-9]/.test(password);
-              const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
-              const hasMinLength = password.length >= 8;
-              const disabled = !password || !confirmPassword || isSubmitting;
-              const submitBtnStyles = {
-                backgroundColor: disabled
-                  ? themeColors.disabledGreen
-                  : themeColors.btnBG,
-                borderColor: disabled
-                  ? themeColors.disabledGreen
-                  : themeColors.btnBG,
-              };
+          const disabled = !(password && confirmPassword) && !submitted;
 
-              return (
-                <View style={styles.formContainer}>
-                  <View style={styles.inputContainer}>
-                    <InputField
-                      name="password"
-                      placeholder="Password"
-                      secureTextEntry
-                    />
+          return (
+            <View style={styles.content}>
+              {submitted ? (
+                <View style={styles.submittedContent}>
+                  <View style={styles.logo}>
+                    <AppLogoLarge />
                   </View>
-                  <View style={styles.inputContainer}>
-                    <InputField
-                      name="confirmPassword"
-                      placeholder="Confirm Password"
-                      secureTextEntry
-                    />
-                  </View>
-
-                  <View style={styles.iconcontainer}>
-                    <View style={styles.iconmaincontainer}>
-                      <View style={styles.closeIcon}>
-                        <View style={styles.singleIconContainer}>
-                          {hasLetter ? (
-                            <FontAwesome6
-                              name="check"
-                              size={15}
-                              color={themeColors.btnBG}
-                              iconStyle="solid"
-                            />
-                          ) : (
-                            <FontAwesome6
-                              name="xmark"
-                              size={15}
-                              color={themeColors.mutedText}
-                              iconStyle="solid"
-                            />
-                          )}
-                        </View>
-                        <Text
-                          style={[styles.passText, themStyles.textSupporting]}
-                        >
-                          One letter
-                        </Text>
-                      </View>
-                      <View style={styles.closeIcon}>
-                        <View style={styles.singleIconContainer}>
-                          {hasNumber ? (
-                            <FontAwesome6
-                              name="check"
-                              size={15}
-                              color={themeColors.btnBG}
-                              iconStyle="solid"
-                            />
-                          ) : (
-                            <FontAwesome6
-                              name="xmark"
-                              size={15}
-                              color={themeColors.mutedText}
-                              iconStyle="solid"
-                            />
-                          )}
-                        </View>
-                        <Text
-                          style={[styles.passText, themStyles.textSupporting]}
-                        >
-                          One number
-                        </Text>
-                      </View>
+                  <Text style={themeStyles.authTitle}>Password reset</Text>
+                  <Text style={[themeStyles.authSubTitle, styles.successMsg]}>
+                    Your password has been successfully updated. Return to login
+                    page to proceed
+                  </Text>
+                </View>
+              ) : (
+                <View>
+                  <Text style={themeStyles.authTitle}>Reset password</Text>
+                  <Text style={themeStyles.authSubTitle}>
+                    Your new password must be unique from those previously used
+                  </Text>
+                  <View style={styles.form}>
+                    <View style={styles.inputContainer}>
+                      <InputField
+                        name="password"
+                        placeholder="Password"
+                        secureTextEntry
+                      />
                     </View>
-                    <View style={styles.iconmaincontainer}>
-                      <View style={styles.closeIcon}>
-                        <View style={styles.singleIconContainer}>
-                          {hasSpecialChar ? (
-                            <FontAwesome6
-                              name="check"
-                              size={15}
-                              color={themeColors.btnBG}
-                              iconStyle="solid"
-                            />
-                          ) : (
-                            <FontAwesome6
-                              name="xmark"
-                              size={15}
-                              color={themeColors.mutedText}
-                              iconStyle="solid"
-                            />
-                          )}
-                        </View>
-                        <Text
-                          style={[styles.passText, themStyles.textSupporting]}
-                        >
-                          A Special Character
-                        </Text>
-                      </View>
-                      <View style={styles.closeIcon}>
-                        <View style={styles.singleIconContainer}>
-                          {hasMinLength ? (
-                            <FontAwesome6
-                              name="check"
-                              size={15}
-                              color={themeColors.btnBG}
-                              iconStyle="solid"
-                            />
-                          ) : (
-                            <FontAwesome6
-                              name="xmark"
-                              size={15}
-                              color={themeColors.mutedText}
-                              iconStyle="solid"
-                            />
-                          )}
-                        </View>
-                        <Text
-                          style={[styles.passText, themStyles.textSupporting]}
-                        >
-                          8 Character Minimum
-                        </Text>
-                      </View>
+                    <View style={styles.inputContainer}>
+                      <InputField
+                        name="confirmPassword"
+                        placeholder="Confirm Password"
+                        secureTextEntry
+                      />
                     </View>
-                  </View>
-
-                  <View style={styles.submitBtnWrapper}>
-                    <Button
-                      size="lg"
-                      title={isSubmitting ? 'Resetting...' : 'Reset Password'}
-                      style={submitBtnStyles}
-                      onPress={handleSubmit}
-                      disabled={disabled}
-                    />
                   </View>
                 </View>
-              );
-            }}
-          </Formik>
-        )}
-
-        {submitted && (
-          <Button
-            style={styles.backToLogin}
-            size="lg"
-            title="Back to Login"
-            onPress={onBackToLogin}
-          />
-        )}
-
-        {submitted && (
-          <View style={styles.footer}>
-            <Text style={[styles.registerText, themStyles.textDefault]}>
-              Remember Password?{' '}
-              <Text
-                style={[styles.registerNow, themStyles.themeBtnTextColor]}
-                onPress={onBackToLogin}
-              >
-                Login
-              </Text>
-            </Text>
-          </View>
-        )}
-      </SafeAreaView>
-    </View>
+              )}
+              <View style={styles.submitBtnWrapper}>
+                <Button
+                  size="lg"
+                  title={submitted ? 'Back to Login' : 'Reset Password'}
+                  onPress={() => {
+                    if (submitted) {
+                      onBackToLogin();
+                    } else {
+                      handleSubmit();
+                    }
+                  }}
+                  disabled={disabled}
+                />
+              </View>
+            </View>
+          );
+        }}
+      </Formik>
+    </AuthLayout>
   );
 };
 
@@ -364,27 +230,17 @@ export default ResetPassword;
 
 const getStyles = (colors: ThemeColors) =>
   StyleSheet.create({
-    passText: {
-      fontSize: 12,
-      textAlign: 'center',
-      fontFamily: Fonts.WorkSansMedium,
-      lineHeight: 17,
+    content: {
+      flex: 1,
+      justifyContent: 'space-between',
     },
-    closeIcon: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginLeft: 10,
-      gap: 7,
-      marginTop: 3,
+    submittedContent: {
+      flex: 1,
+      justifyContent: 'center',
+      marginBottom: 50,
     },
-    iconmaincontainer: {
-      flexDirection: 'column',
-    },
-    iconcontainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      alignSelf: 'center',
-      marginTop: 5,
+    form: {
+      marginTop: 50,
     },
     resetTextDesc: {
       fontSize: 12,
@@ -399,9 +255,6 @@ const getStyles = (colors: ThemeColors) =>
       fontFamily: Fonts.RobotoBold,
       lineHeight: 39,
     },
-    fullFlex: {
-      flex: 1,
-    },
     container: {
       flex: 1,
       backgroundColor: colors.appBG,
@@ -410,16 +263,9 @@ const getStyles = (colors: ThemeColors) =>
     },
     logo: {
       alignItems: 'center',
-      marginBottom: 30,
     },
-    registerText: {
-      textAlign: 'center',
-      marginTop: 29,
-      fontFamily: Fonts.WorkSansMedium,
-    },
-    registerNow: {
-      fontWeight: 'bold',
-      fontFamily: Fonts.WorkSansMedium,
+    successMsg: {
+      width: 296,
     },
     backToLogin: { marginTop: 39 },
     footer: {
@@ -430,25 +276,6 @@ const getStyles = (colors: ThemeColors) =>
       textAlign: 'center',
     },
     submitBtnWrapper: { marginTop: 28 },
-    backIcon: {
-      flexDirection: 'row',
-      borderWidth: 1,
-      borderColor: 'white',
-      borderRadius: 5,
-      width: 33,
-      height: 33,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: 20,
-      marginLeft: -8,
-    },
-    singleIconContainer: {
-      width: 11,
-      height: 15,
-    },
-    formContainer: {
-      marginTop: 26,
-    },
     inputContainer: {
       marginBottom: 16,
     },

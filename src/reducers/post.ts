@@ -39,12 +39,17 @@ interface UpdateLikeStatePayload {
   is_like: boolean;
   likes_count: number;
   reaction_type?: string | null;
+  user_email: string;
+  emoji_counts?: Record<string, number>;
 }
 
 const postSlice = createSlice({
   name: 'post',
   initialState,
   reducers: {
+    clearPostDetails(state) {
+      state.postDetails = null;
+    },
     updateLikeState(state, action: PayloadAction<UpdateLikeStatePayload>) {
       if (state.postDetails && state.postDetails.id === action.payload.id) {
         state.postDetails.is_like = action.payload.is_like;
@@ -52,27 +57,31 @@ const postSlice = createSlice({
         state.postDetails.reaction_type =
           action.payload.reaction_type || undefined;
 
-        // Update emoji_counts if needed
-        if (state.postDetails.emoji_counts) {
-          const updatedCounts = { ...state.postDetails.emoji_counts };
+        // Update emoji_counts with the new counts from the payload
+        if (action.payload.emoji_counts) {
+          state.postDetails.emoji_counts = action.payload.emoji_counts;
+        }
 
-          // If removing a reaction
-          if (!action.payload.is_like && state.postDetails.reaction_type) {
-            if (updatedCounts[state.postDetails.reaction_type]) {
-              updatedCounts[state.postDetails.reaction_type] -= 1;
-              if (updatedCounts[state.postDetails.reaction_type] <= 0) {
-                delete updatedCounts[state.postDetails.reaction_type];
-              }
-            }
+        // Update likes array to reflect the change
+        if (state.postDetails.likes) {
+          const userLikeIndex = state.postDetails.likes.findIndex(
+            (like) => like.user.email === action.payload.user_email,
+          );
+
+          if (userLikeIndex !== -1) {
+            // Remove existing reaction
+            state.postDetails.likes.splice(userLikeIndex, 1);
           }
 
-          // If adding a new reaction
           if (action.payload.is_like && action.payload.reaction_type) {
-            updatedCounts[action.payload.reaction_type] =
-              (updatedCounts[action.payload.reaction_type] || 0) + 1;
+            // Add new reaction
+            state.postDetails.likes.push({
+              user: { email: action.payload.user_email },
+              reaction_type: action.payload.reaction_type,
+              created_at: new Date().toISOString(),
+              id: 0, // need to check
+            });
           }
-
-          state.postDetails.emoji_counts = updatedCounts;
         }
       }
     },
@@ -112,4 +121,4 @@ export const PostSelectors = (): PostSelectorsType => {
   };
 };
 
-export const { updateLikeState } = postSlice.actions;
+export const { updateLikeState, clearPostDetails } = postSlice.actions;

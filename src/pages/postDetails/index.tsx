@@ -1,6 +1,8 @@
+import { GradientBackground } from '@components/GradientBackground';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
-import IonIcon from '@react-native-vector-icons/ionicons';
 import { useRoute } from '@react-navigation/native';
+import FeedHeader from '@shared/FeedHeader';
+import Spacer from '@shared/Spacer';
 import { useEffect, useContext } from 'react';
 import {
   Image,
@@ -13,20 +15,22 @@ import {
 } from 'react-native';
 import Video from 'react-native-video';
 
+import SaveIcon from '../../../assets/svgs/feedSVGs/save.svg';
+import ShareIcon from '../../../assets/svgs/feedSVGs/shareArrow.svg';
 import { reactToPost, removeReaction } from '../../api/posts';
 import { AuthContext } from '../../context/authContext';
 import useAppDispatch from '../../hooks/useAppDispatch';
 import useEmojiReaction from '../../hooks/useEmojiReaction';
 import {
+  clearPostDetails,
   getPostDetails,
   PostSelectors,
   updateLikeState,
 } from '../../reducers/post';
-import BackButton from '../../shared/backButton';
+// import BackButton from '../../shared/backButton';
 import EmojiPicker from '../../shared/EmojiPicker';
-import TopProfileBar from '../../shared/TopProfileBar';
+// import TopProfileBar from '../../shared/TopProfileBar';
 import { useThemeStyles } from '../../theme/ThemeStylesProvider';
-import { COMMON } from '../../utils/common';
 
 export default function PostDetailsScreen() {
   const route = useRoute();
@@ -35,7 +39,7 @@ export default function PostDetailsScreen() {
   const { user } = useContext(AuthContext);
   const { postId } = route.params as { postId: string };
 
-  const { postDetails } = PostSelectors();
+  const { postDetails, loading } = PostSelectors();
 
   const {
     showEmojiPicker,
@@ -51,11 +55,26 @@ export default function PostDetailsScreen() {
 
       try {
         const postID = postDetails.id.toString();
+        const oldReactionType = postDetails.reaction_type;
+        const currentEmojiCounts = { ...postDetails.emoji_counts };
 
         if (emoji) {
           // Add or change reaction
           const response = await reactToPost(postID, emoji.reactionType);
           const updatedPost = response.data.post;
+
+          // Update emoji counts
+          if (oldReactionType && currentEmojiCounts[oldReactionType]) {
+            currentEmojiCounts[oldReactionType] = Math.max(
+              currentEmojiCounts[oldReactionType] - 1,
+              0,
+            );
+            if (currentEmojiCounts[oldReactionType] === 0) {
+              delete currentEmojiCounts[oldReactionType];
+            }
+          }
+          currentEmojiCounts[emoji.reactionType] =
+            (currentEmojiCounts[emoji.reactionType] || 0) + 1;
 
           dispatch(
             updateLikeState({
@@ -63,11 +82,24 @@ export default function PostDetailsScreen() {
               is_like: true,
               likes_count: updatedPost.likes_count,
               reaction_type: emoji.reactionType,
+              user_email: user?.email || '',
+              emoji_counts: currentEmojiCounts,
             }),
           );
         } else {
           // Remove reaction
           await removeReaction(postID);
+
+          // Update emoji counts for removal
+          if (oldReactionType && currentEmojiCounts[oldReactionType]) {
+            currentEmojiCounts[oldReactionType] = Math.max(
+              currentEmojiCounts[oldReactionType] - 1,
+              0,
+            );
+            if (currentEmojiCounts[oldReactionType] === 0) {
+              delete currentEmojiCounts[oldReactionType];
+            }
+          }
 
           dispatch(
             updateLikeState({
@@ -75,6 +107,8 @@ export default function PostDetailsScreen() {
               is_like: false,
               likes_count: Math.max(postDetails.likes_count - 1, 0),
               reaction_type: null,
+              user_email: user?.email || '',
+              emoji_counts: currentEmojiCounts,
             }),
           );
         }
@@ -86,6 +120,11 @@ export default function PostDetailsScreen() {
 
   useEffect(() => {
     dispatch(getPostDetails({ postId }));
+
+    // Clear post details when component unmounts
+    return () => {
+      dispatch(clearPostDetails());
+    };
   }, [dispatch, postId]);
 
   const renderContent = () => {
@@ -97,8 +136,8 @@ export default function PostDetailsScreen() {
           source={{ uri: postDetails.video_url }}
           style={styles.feedVideoDetails}
           resizeMode="contain"
-          shouldPlay
-          isLooping
+          paused={false}
+          repeat={true}
           controls={true}
         />
       );
@@ -129,9 +168,7 @@ export default function PostDetailsScreen() {
 
     return (
       <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
-        <View
-          style={[styles.flexRow, styles.alignItemsCenter, styles.marginRight]}
-        >
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr2]}>
           {displayedReactions.map((type, index) => {
             const matchingEmoji = emojis.find((e) => e.reactionType === type);
             if (!matchingEmoji) return null;
@@ -172,7 +209,11 @@ export default function PostDetailsScreen() {
         (e) => e.reactionType === userReaction.reaction_type,
       );
       if (userEmoji) {
-        return <Text style={customStyles.font20}>{userEmoji.emoji}</Text>;
+        return (
+          <Text style={[customStyles.font20, styles.textSupporting]}>
+            {userEmoji.emoji}
+          </Text>
+        );
       }
     }
 
@@ -192,32 +233,49 @@ export default function PostDetailsScreen() {
         name="heart"
         iconStyle="regular"
         size={20}
-        style={styles.textSupporting}
+        style={styles.textMuted}
       />
     );
   };
 
-  if (!postDetails) {
+  // if (!postDetails) {
+  //   return (
+  //     <View style={[styles.flex1, styles.appBG, styles.justifyContentCenter]}>
+  //       <ActivityIndicator size="large" />
+  //     </View>
+  //   );
+  // }
+
+  // Show loader when loading is true OR postDetails is null
+  if (loading || !postDetails) {
     return (
-      <View style={[styles.flex1, styles.appBG, styles.justifyContentCenter]}>
-        <ActivityIndicator size="large" />
-      </View>
+      <GradientBackground>
+        <View style={styles.appHeaderBG}>
+          <Spacer multiplier={1.4} />
+          <FeedHeader
+            label="Feed"
+            showBackButton
+            containerStyle={styles.appHeaderBG}
+          />
+        </View>
+        <View style={[styles.flex1, styles.justifyContentCenter]}>
+          <ActivityIndicator size="large" />
+        </View>
+      </GradientBackground>
     );
   }
 
   return (
-    <View style={[styles.flex1, styles.appBG, styles.ph4]}>
-      <View
-        style={[
-          styles.flexRow,
-          styles.justifyContentBetween,
-          styles.alignItemsCenter,
-        ]}
-      >
-        <BackButton />
-        <TopProfileBar showSearchIcon />
+    <GradientBackground>
+      <View style={styles.appHeaderBG}>
+        <Spacer multiplier={1.4} />
+        <FeedHeader
+          label="Feed"
+          showBackButton
+          containerStyle={styles.appHeaderBG}
+        />
       </View>
-      <View style={[styles.flex1, styles.justifyContentBetween]}>
+      <View style={[styles.flex1, styles.justifyContentBetween, styles.ph4]}>
         <ScrollView style={[styles.mt4, styles.gap2]}>
           <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
             <Image
@@ -228,107 +286,108 @@ export default function PostDetailsScreen() {
               }}
               style={styles.feedUserAvatar}
             />
-            <Text style={styles.textDefaultSmall}>{postDetails.username}</Text>
-          </View>
-          <Text style={styles.textDefaultLarge}>{postDetails.title}</Text>
-          <View style={[styles.separatorLine, styles.mv4]} />
-          <View style={styles.mb4}>
-            <Text style={[styles.textDefaultSmall, styles.fontWeigthMedium]}>
-              {postDetails.screen_name}
-            </Text>
-            <Text style={[styles.textDefaultSmall, styles.fontWeightLight]}>
-              {COMMON.dateStr(postDetails.created_at)}
+            <Text style={[styles.textInterMedium, styles.fontSize12]}>
+              {postDetails.username}
             </Text>
           </View>
-          <Text style={[styles.textSupportingSmall, styles.mb4]}>
+          <Text
+            style={[
+              styles.textInterRegular,
+              styles.textDetail,
+              styles.fontSize13,
+              styles.pt4,
+            ]}
+          >
             {postDetails.text_body}
           </Text>
-          {renderContent()}
-
-          {/* Overall reactions display - matching FeedCard */}
-          {renderOverallReactions()}
-        </ScrollView>
-        <View
-          style={[
-            styles.flexRow,
-            styles.justifyContentBetween,
-            styles.alignItemsCenter,
-            styles.mt2,
-            styles.ph2,
-            styles.pv4,
-          ]}
-        >
-          <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+          <View
+            style={[
+              styles.flexRow,
+              styles.justifyContentBetween,
+              styles.alignItemsCenter,
+              styles.mt2,
+              styles.ph2,
+              styles.pv4,
+            ]}
+          >
             <View
-              style={[
-                styles.flexRow,
-                styles.alignItemsCenter,
-                styles.gap2,
-                customStyles.emojiContainer,
-              ]}
+              style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             >
-              <View>
+              <View
+                style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
+              >
                 <TouchableOpacity
-                  onPress={toggleEmojiPicker}
-                  onLongPress={clearEmoji}
-                  style={[styles.flexRow, styles.alignItemsCenter]}
-                  activeOpacity={0.7}
+                  style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
                 >
-                  {renderUserReactionButton()}
+                  <ShareIcon width={22} height={17} />
+                  <Text style={styles.textSupporting}>238</Text>
                 </TouchableOpacity>
+              </View>
+              <View
+                style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
+              >
+                <TouchableOpacity
+                  style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
+                >
+                  <SaveIcon width={14} height={18} />
+                  <Text style={styles.textSupporting}>456</Text>
+                </TouchableOpacity>
+              </View>
+              <View
+                style={[
+                  styles.flexRow,
+                  styles.alignItemsCenter,
+                  styles.gap2,
+                  customStyles.emojiContainer,
+                ]}
+              >
+                <View>
+                  <TouchableOpacity
+                    onPress={toggleEmojiPicker}
+                    onLongPress={clearEmoji}
+                    style={[styles.flexRow, styles.alignItemsCenter]}
+                    activeOpacity={0.7}
+                  >
+                    {renderUserReactionButton()}
+                  </TouchableOpacity>
 
-                {showEmojiPicker && (
-                  <EmojiPicker
-                    emojis={emojis}
-                    scaleAnim={scaleAnim}
-                    onSelectEmoji={handleEmojiSelect}
-                    containerStyle={customStyles.emojiPicker}
-                  />
-                )}
+                  {showEmojiPicker && (
+                    <EmojiPicker
+                      emojis={emojis}
+                      scaleAnim={scaleAnim}
+                      onSelectEmoji={handleEmojiSelect}
+                      containerStyle={customStyles.emojiPicker}
+                    />
+                  )}
+                </View>
+                <Text style={styles.textSupporting}>
+                  {postDetails.likes_count}
+                </Text>
               </View>
             </View>
-            <View
-              style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
-            >
-              <TouchableOpacity>
-                <FontAwesome6
-                  name="message"
-                  size={20}
-                  style={styles.textSupporting}
-                />
-              </TouchableOpacity>
-              <Text style={styles.textSupportingSmall}>
-                {postDetails.likes_count}
-              </Text>
-            </View>
-            <TouchableOpacity>
-              <IonIcon
-                name="send-outline"
-                size={20}
-                style={[styles.textSupporting]}
-              />
-            </TouchableOpacity>
           </View>
-          <TouchableOpacity>
-            <IonIcon
-              name="bookmark-outline"
-              size={20}
-              style={styles.textSupporting}
-            />
-          </TouchableOpacity>
-        </View>
+          {renderContent()}
+          {renderOverallReactions()}
+        </ScrollView>
       </View>
-    </View>
+    </GradientBackground>
   );
 }
 
 const customStyles = StyleSheet.create({
+  // headerContainer: {
+  //   backgroundColor: '#2196F3',
+  // },
+  // header: {
+  //   backgroundColor: '#2196F3',
+  // },
   emojiContainer: {
     position: 'relative',
     zIndex: 5,
   },
   emojiPicker: {
-    bottom: 50,
+    bottom: 30,
+    left: -20,
   },
   displayReaction: {
     width: 24,

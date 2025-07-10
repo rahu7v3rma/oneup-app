@@ -22,6 +22,9 @@ export const createStyles = (colors: ThemeColors) => {
     appBG: {
       backgroundColor: colors.appBG,
     },
+    appHeaderBG: {
+      backgroundColor: colors.secondary,
+    },
 
     themeContainerColor: {
       backgroundColor: colors.appBG,
@@ -40,7 +43,7 @@ export const createStyles = (colors: ThemeColors) => {
       backgroundColor: colors.btnBG,
     },
     themeBtnTextColor: {
-      color: colors.btnBG,
+      color: colors.midnight,
     },
     themeInputPlacholderColor: {
       color: colors.gray1,
@@ -65,6 +68,14 @@ export const createStyles = (colors: ThemeColors) => {
 
     textMuted: {
       color: colors.mutedText,
+    },
+
+    textGray: {
+      color: colors.gray1,
+    },
+
+    textDetail: {
+      color: colors.textDetail,
     },
 
     // End: Text Color
@@ -151,6 +162,76 @@ export const createStyles = (colors: ThemeColors) => {
       fontWeight: '700',
     },
 
+    // Start: Text Styles new
+
+    textInterRegular: {
+      fontFamily: Fonts.InterRegular,
+      fontSize: 15,
+      color: colors.text,
+      lineHeight: 20,
+    },
+
+    textInterLight: {
+      fontFamily: Fonts.InterLight,
+      fontSize: 15,
+      color: colors.text,
+      lineHeight: 20,
+    },
+
+    textInterMedium: {
+      fontFamily: Fonts.InterMedium,
+      fontSize: 15,
+      color: colors.text,
+      lineHeight: 20,
+    },
+
+    textInterSemiBold: {
+      fontWeight: '600',
+      fontFamily: Fonts.InterSemiBold,
+      fontSize: 15,
+      color: colors.text,
+      lineHeight: 20,
+    },
+
+    textInterBold: {
+      fontFamily: Fonts.InterBold,
+      fontSize: 15,
+      color: colors.text,
+      lineHeight: 20,
+    },
+
+    // font sizes
+    fontSize12: {
+      fontSize: 12,
+    },
+    fontSize13: {
+      fontSize: 13,
+    },
+    fontSize14: {
+      fontSize: 14,
+    },
+    fontSize15: {
+      fontSize: 15,
+    },
+    fontSize16: {
+      fontSize: 16,
+    },
+    fontSize17: {
+      fontSize: 17,
+    },
+    fontSize18: {
+      fontSize: 18,
+    },
+    fontSize20: {
+      fontSize: 20,
+    },
+    fontSize22: {
+      fontSize: 22,
+    },
+    fontSize24: {
+      fontSize: 24,
+    },
+
     // End: Text Styles
 
     card: {
@@ -221,7 +302,8 @@ export const createStyles = (colors: ThemeColors) => {
       justifyContent: 'center',
     },
     checkBoxBorder: {
-      borderColor: colors.text,
+      backgroundColor: '#161C23',
+      borderColor: '#161C23',
       borderWidth: 1,
     },
     errorText: {
@@ -245,6 +327,44 @@ export const createStyles = (colors: ThemeColors) => {
       fontFamily: Fonts.WorkSansRegular,
       fontSize: 12,
       color: colors.primary,
+    },
+    textGreen: {
+      color: colors.textGreen,
+    },
+    checkBoxTick: {
+      color: colors.mintGreen,
+    },
+    checkBoxText: {
+      color: colors.slate,
+    },
+    footerText: {
+      color: colors.slateGray,
+    },
+    authTitle: {
+      color: colors.textSupporting,
+      fontSize: 20,
+      lineHeight: 20,
+      letterSpacing: 0,
+      textAlign: 'center',
+      fontFamily: Fonts.InterBold,
+      fontWeight: 700,
+    },
+    authSubTitle: {
+      color: colors.slate,
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+      textAlign: 'center',
+      fontFamily: Fonts.InterRegular,
+      paddingTop: 10,
+      width: 230,
+      alignSelf: 'center',
+    },
+    infoText: {
+      color: colors.slate,
+    },
+    springGreen: {
+      color: colors.springGreen,
     },
   });
 };

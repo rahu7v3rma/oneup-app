@@ -1,7 +1,9 @@
+import { GradientBackground } from '@components/GradientBackground';
+import { BlurView } from '@react-native-community/blur';
+import Icon from '@react-native-vector-icons/ionicons';
 import { RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import BackButton from '@shared/backButton';
-import TopProfileBar from '@shared/TopProfileBar';
+import Spacer from '@shared/Spacer';
 import React, {
   useRef,
   useState,
@@ -19,13 +21,14 @@ import {
   NativeSyntheticEvent,
   TextInputKeyPressEventData,
   Alert,
+  TouchableOpacity,
+  Text,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import tokenService from '../../api/services/token.service';
 import GameChatActionMenu from '../../components/GameChat/components/GameChatActionMenu';
-import GameChatDivider from '../../components/GameChat/components/GameChatDivider';
-import GameChatGameInfo from '../../components/GameChat/components/GameChatGameInfo';
 import GameChatHeader from '../../components/GameChat/components/GameChatHeader';
 import GameChatList from '../../components/GameChat/components/GameChatList';
 import GameChatMessageInput from '../../components/GameChat/components/GameChatMessageInput';
@@ -98,13 +101,18 @@ const GameChatScreen: React.FC<GameChatProps> = ({ route }) => {
 
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<
+    { x: number; y: number } | undefined
+  >(undefined);
 
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const messagesLength = messages.length;
 
   const { user } = useContext(AuthContext);
   const [isCheckingAvatar, setIsCheckingAvatar] = useState(false);
   const lastSyncedAvatarRef = useRef<string | undefined>(undefined);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -112,6 +120,32 @@ const GameChatScreen: React.FC<GameChatProps> = ({ route }) => {
     }, 60000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Handle keyboard events for Android
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      const keyboardDidShowListener = Keyboard.addListener(
+        'keyboardDidShow',
+        (e) => {
+          setKeyboardHeight(e.endCoordinates.height);
+        },
+      );
+      const keyboardDidHideListener = Keyboard.addListener(
+        'keyboardDidHide',
+        () => {
+          // Add a small delay to ensure smooth transition
+          setTimeout(() => {
+            setKeyboardHeight(0);
+          }, 100);
+        },
+      );
+
+      return () => {
+        keyboardDidShowListener?.remove();
+        keyboardDidHideListener?.remove();
+      };
+    }
   }, []);
 
   // Format current date/time like in the UI
@@ -518,6 +552,11 @@ const GameChatScreen: React.FC<GameChatProps> = ({ route }) => {
       // Clear reply state
       setReplyTo(null);
 
+      // Dismiss keyboard on Android
+      if (Platform.OS === 'android') {
+        Keyboard.dismiss();
+      }
+
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
@@ -571,14 +610,19 @@ const GameChatScreen: React.FC<GameChatProps> = ({ route }) => {
   };
 
   // Handle long press with action menu
-  const handleLongPress = (message: Message) => {
+  const handleLongPress = (
+    message: Message,
+    position: { x: number; y: number },
+  ) => {
     setSelectedMessage(message);
+    setMenuPosition(position);
     setShowActionMenu(true);
   };
 
   const handleCloseActionMenu = () => {
     setShowActionMenu(false);
     setSelectedMessage(null);
+    setMenuPosition(undefined);
   };
 
   const handleInputKeyPress = (
@@ -589,7 +633,13 @@ const GameChatScreen: React.FC<GameChatProps> = ({ route }) => {
     }
   };
 
-  const displayTitle = `${homeTeam} @ ${awayTeam}`;
+  const handleDismissKeyboard = () => {
+    if (Platform.OS === 'android') {
+      Keyboard.dismiss();
+      // Ensure input loses focus properly
+      inputRef.current?.blur();
+    }
+  };
 
   useEffect(() => {
     const checkAndSyncAvatar = async () => {
@@ -626,85 +676,210 @@ const GameChatScreen: React.FC<GameChatProps> = ({ route }) => {
     checkAndSyncAvatar();
   }, [user?.avatar, isCheckingAvatar]);
 
+  // Header menu handlers
+  const handleHeaderMenuPress = () => {
+    try {
+      setShowHeaderMenu((prev) => !prev);
+    } catch (error) {
+      console.error('Error toggling header menu:', error);
+      // Fallback: ensure menu is closed if there's an error
+      setShowHeaderMenu(false);
+    }
+  };
+  const handleCloseHeaderMenu = () => {
+    try {
+      setShowHeaderMenu(false);
+    } catch (error) {
+      console.error('Error closing header menu:', error);
+    }
+  };
+  const handleMuteNotifications = () => {
+    try {
+      // TODO: Implement mute logic
+      setShowHeaderMenu(false);
+    } catch (error) {
+      console.error('Error handling mute notifications:', error);
+      setShowHeaderMenu(false);
+    }
+  };
+  const handleLeaveChat = () => {
+    try {
+      // TODO: Implement leave chat logic
+      setShowHeaderMenu(false);
+    } catch (error) {
+      console.error('Error handling leave chat:', error);
+      setShowHeaderMenu(false);
+    }
+  };
+
   return (
-    <SafeAreaView style={[themeStyles.flex1, styles.container]} edges={['top']}>
-      {/* Top bar */}
-      <View style={[themeStyles.flexRow, styles.topBar]}>
-        <BackButton />
-        <TopProfileBar showSearchIcon={false} />
-      </View>
-
-      {/* Header actions */}
-      <GameChatHeader
-        displayTitle={displayTitle}
-        themeStyles={themeStyles}
-        onStarPress={() => console.log('Star pressed')}
-        onMenuPress={() => console.log('Menu pressed')}
-      />
-
-      {/* Game info */}
-      <GameChatGameInfo
-        homeTeam={homeTeam}
-        awayTeam={awayTeam}
-        homeTeamLogo={homeTeamLogo}
-        awayTeamLogo={awayTeamLogo}
-        gameDate={gameDate}
-        gameTime={gameTime}
-        gameType={gameType}
-      />
-
-      {/* Divider */}
-      <GameChatDivider />
-
+    <GradientBackground>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 40}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        enabled={Platform.OS === 'ios'}
       >
-        {/* Chat list */}
-        <GameChatList
-          messages={messages}
-          isLoadingMessages={isLoadingMessages}
-          likingMessages={likingMessages}
-          themeColors={themeColors}
-          flatListRef={flatListRef}
-          onLikeToggle={handleLikeToggle}
-          onLongPress={handleLongPress}
-          formatDateTime={formatDateTime}
-          currentDateTime={currentDateTime}
-        />
+        <View style={themeStyles.appHeaderBG}>
+          <Spacer multiplier={1.4} />
+          {/* Header with back button and ellipsis icon inside */}
+          <GameChatHeader
+            themeStyles={themeStyles}
+            showBackButton={true}
+            gameDate={gameDate}
+            gameTime={gameTime}
+            displayTitle={`${homeTeam} @ ${awayTeam}`}
+            onMenuPress={handleHeaderMenuPress}
+            menuActive={showHeaderMenu}
+            themeColors={themeColors}
+            containerStyle={{
+              ...styles.headerContainerStyle,
+              backgroundColor: themeColors.secondary,
+            }}
+          />
+        </View>
+        {/* Header Menu Popup */}
+        {showHeaderMenu && (
+          <View style={styles.headerMenuOverlay}>
+            {/* Platform-specific overlay */}
+            {Platform.OS === 'ios' ? (
+              <>
+                {/* iOS: Use BlurView */}
+                <View style={styles.headerMenuOverlayIOS} />
+                <BlurView
+                  style={styles.blurViewStyle}
+                  blurType="dark"
+                  blurAmount={0}
+                  reducedTransparencyFallbackColor="rgba(0,0,0,0.008)"
+                />
+              </>
+            ) : (
+              /* Android: Use simple overlay */
+              <View style={styles.headerMenuOverlayAndroid} />
+            )}
 
-        {/* Message input */}
-        <GameChatMessageInput
-          inputValue={inputValue}
-          setInputValue={setInputValue}
-          replyTo={replyTo}
-          isConnecting={isConnecting}
-          inputRef={inputRef}
-          onSend={handleSend}
-          onCancelReply={handleCancelReply}
-          onInputKeyPress={handleInputKeyPress}
-        />
+            <TouchableOpacity
+              style={styles.headerMenuTouchable}
+              onPress={handleCloseHeaderMenu}
+              activeOpacity={1}
+            />
+            <View style={styles.headerMenuContainer}>
+              <TouchableOpacity
+                style={styles.headerMenuItem}
+                onPress={handleMuteNotifications}
+                activeOpacity={0.7}
+                hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+              >
+                <Icon
+                  name="notifications-off-outline"
+                  size={18}
+                  color="#A4A4A4"
+                  style={styles.headerMenuIcon}
+                />
+                <Text style={styles.headerMenuText}>Mute notifications</Text>
+              </TouchableOpacity>
+              <View
+                style={[
+                  styles.headerMenuDivider,
+                  { backgroundColor: themeColors.slateGray },
+                ]}
+              />
+              <TouchableOpacity
+                style={styles.headerMenuItem}
+                onPress={handleLeaveChat}
+                activeOpacity={0.7}
+                hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+              >
+                <Icon
+                  name="exit-outline"
+                  size={18}
+                  color="#A4A4A4"
+                  style={styles.headerMenuIcon}
+                />
+                <Text style={styles.headerMenuText}>Leave chat</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+        <View
+          style={[
+            themeStyles.flex1,
+            styles.container,
+            Platform.OS === 'android' && { paddingBottom: keyboardHeight },
+          ]}
+        >
+          {/* Chat list */}
+          <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+            <View style={styles.chatListContainer}>
+              <GameChatList
+                messages={messages}
+                isLoadingMessages={isLoadingMessages}
+                likingMessages={likingMessages}
+                themeColors={themeColors}
+                flatListRef={flatListRef}
+                onLikeToggle={handleLikeToggle}
+                onLongPress={handleLongPress}
+                formatDateTime={formatDateTime}
+                currentDateTime={currentDateTime}
+              />
+            </View>
+          </TouchableWithoutFeedback>
+
+          {/* Reply Preview (above input) */}
+          {replyTo && (
+            <View style={styles.replyPreviewContainer}>
+              <View style={styles.replyPreviewContent}>
+                <Text style={styles.replyPreviewLabel}>
+                  Replying to{' '}
+                  <Text style={styles.replyPreviewUsername}>
+                    {replyTo.username}
+                  </Text>
+                </Text>
+                <Text style={styles.replyPreviewText} numberOfLines={1}>
+                  {replyTo.text}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={handleCancelReply}
+                style={styles.replyPreviewCancelButton}
+              >
+                <Text style={styles.replyPreviewCancelText}>×</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Message input */}
+          <GameChatMessageInput
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            replyTo={replyTo}
+            isConnecting={isConnecting}
+            inputRef={inputRef}
+            onSend={handleSend}
+            onCancelReply={handleCancelReply}
+            onInputKeyPress={handleInputKeyPress}
+          />
+
+          {/* Action Menu */}
+          <GameChatActionMenu
+            showActionMenu={showActionMenu}
+            selectedMessage={selectedMessage}
+            onCloseActionMenu={handleCloseActionMenu}
+            onLikeToggle={handleLikeToggle}
+            onReply={handleReply}
+            onWagers={handleWagers}
+            onReport={handleReport}
+            menuPosition={menuPosition}
+          />
+        </View>
       </KeyboardAvoidingView>
-
-      {/* Action Menu */}
-      <GameChatActionMenu
-        showActionMenu={showActionMenu}
-        selectedMessage={selectedMessage}
-        onCloseActionMenu={handleCloseActionMenu}
-        onLikeToggle={handleLikeToggle}
-        onReply={handleReply}
-        onWagers={handleWagers}
-        onReport={handleReport}
-      />
-    </SafeAreaView>
+    </GradientBackground>
   );
 };
 
-const createStyles = (themeColors: Record<string, string>) =>
+const createStyles = (themeColors: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: themeColors.appBG,
       flex: 1,
     },
     keyboardAvoidingView: {
@@ -715,7 +890,120 @@ const createStyles = (themeColors: Record<string, string>) =>
       alignItems: 'center',
       flexDirection: 'row',
       padding: 12,
-      backgroundColor: '#181C4A',
+      backgroundColor: themeColors.appHeaderBG,
+    },
+    headerMenuOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 3000,
+    },
+    headerMenuOverlayIOS: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.008)',
+    },
+    headerMenuOverlayAndroid: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    },
+    headerMenuTouchable: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+    headerMenuContainer: {
+      position: 'absolute',
+      top: 100,
+      right: 20,
+      width: 200,
+      backgroundColor: '#181F26',
+      borderRadius: 14,
+      paddingVertical: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.22,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    headerMenuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+    },
+    headerMenuIcon: {
+      marginRight: 12,
+    },
+    headerMenuText: {
+      color: '#fff',
+      fontSize: 15,
+      fontWeight: '500',
+    },
+    headerMenuDivider: {
+      height: 1,
+      marginHorizontal: 10,
+    },
+    replyPreviewContainer: {
+      backgroundColor: '#181F26',
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      paddingBottom: 8,
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    replyPreviewContent: {
+      flex: 1,
+    },
+    replyPreviewLabel: {
+      color: '#A4A4A4',
+      fontSize: 13,
+    },
+    replyPreviewUsername: {
+      color: '#fff',
+      fontWeight: 'bold',
+    },
+    replyPreviewText: {
+      color: '#fff',
+      fontSize: 15,
+      marginTop: 2,
+    },
+    replyPreviewCancelButton: {
+      marginLeft: 8,
+      padding: 4,
+    },
+    replyPreviewCancelText: {
+      color: '#fff',
+      fontSize: 18,
+    },
+    headerContainerStyle: {
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexDirection: 'row',
+      padding: 12,
+    },
+    blurViewStyle: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+    chatListContainer: {
+      flex: 1,
     },
   });
 

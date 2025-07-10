@@ -9,7 +9,7 @@ export type Emoji = {
 };
 
 export const defaultEmojis: Emoji[] = [
-  { id: '1', emoji: '❤️', name: 'heart', reactionType: 'love' },
+  { id: '1', emoji: '💚', name: 'heart', reactionType: 'love' },
   { id: '2', emoji: '‼️', name: 'alert', reactionType: 'double_exclamation' },
   { id: '3', emoji: '🔥', name: 'fire', reactionType: 'fire' },
   { id: '4', emoji: '👎🏼', name: 'dislike', reactionType: 'dislike' },

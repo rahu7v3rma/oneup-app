@@ -1,5 +1,6 @@
+import SaveIcon from '@components/icons/feed/SaveIcon';
+import ShareIcon from '@components/icons/feed/ShareIcon';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
-import IonIcon from '@react-native-vector-icons/ionicons';
 import React, { useContext, useState } from 'react';
 import {
   Image,
@@ -73,15 +74,15 @@ export default function FeedCard({
           await reactToPost(postId, emoji.reactionType);
         } else {
           // Optimistically update UI
-          onPressLike(false, undefined, { id: user.id });
+          onPressLike(false, undefined, { id: user?.id });
           await removeReaction(postId);
         }
       } catch (error) {
         console.error('Error handling emoji reaction:', error);
         // Revert optimistic update on error
         onPressLike(
-          !!feedDetails.likes?.find((like) => like.user.email === user.email),
-          feedDetails.likes?.find((like) => like.user.email === user.email)
+          !!feedDetails.likes?.find((like) => like.user.email === user?.email),
+          feedDetails.likes?.find((like) => like.user.email === user?.email)
             ?.reaction_type,
           null,
         );
@@ -168,8 +169,8 @@ export default function FeedCard({
       <FontAwesome6
         name="heart"
         iconStyle="regular"
-        size={20}
-        style={styles.textSupporting}
+        size={24}
+        style={styles.textMuted}
       />
     );
   };
@@ -188,14 +189,16 @@ export default function FeedCard({
             source={{ uri: feedDetails.profile_image_url || '' }}
             style={styles.feedUserAvatar}
           />
-          <Text style={styles.textDefaultSmall}>{feedDetails.username}</Text>
+          <Text style={[styles.textInterMedium, styles.fontSize12]}>
+            {feedDetails.username}
+          </Text>
         </View>
         <TouchableOpacity>
           <FontAwesome6
             name="ellipsis"
             iconStyle="solid"
             size={20}
-            style={styles.textDefault}
+            style={styles.textMuted}
           />
         </TouchableOpacity>
       </View>
@@ -249,21 +252,12 @@ export default function FeedCard({
               onSelectEmoji={handleEmojiSelect}
             />
           )}
-
           <TouchableOpacity onPress={handleShare}>
-            <IonIcon
-              name="send-outline"
-              size={20}
-              style={[styles.textSupporting, styles.ml2]}
-            />
+            <ShareIcon color={styles.textMuted.color} size={28} />
           </TouchableOpacity>
         </View>
         <TouchableOpacity>
-          <IonIcon
-            name="bookmark-outline"
-            size={20}
-            style={styles.textSupporting}
-          />
+          <SaveIcon color={styles.textMuted.color} size={28} />
         </TouchableOpacity>
       </View>
     </View>

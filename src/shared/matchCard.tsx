@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     height: 3,
   },
   finalOutText: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: Fonts.WorkSansSemiBold,
   },
 });
