@@ -8,6 +8,9 @@ import CoinPackCard from '../../shared/BuyCoins/CoinPackCard';
 import TopBar from '../../shared/BuyCoins/TopBar';
 import Text from '../../shared/text';
 import { useTheme } from '../../theme/ThemeProvider';
+import { GradientBackground } from '../../components/GradientBackground';
+import Spacer from '../../shared/Spacer';
+import Header from '../../shared/header';
 
 type CoinPack = {
   id: string;
@@ -25,8 +28,10 @@ const BuyCoins = () => {
   const balance = { gold: 12500, green: 2500 };
 
   return (
+    <GradientBackground>
+       <Spacer multiplier={1} />
     <View style={[styles.container]}>
-      <TopBar title={coinString?.BUY_COINS_TITLE} />
+       <Header title={coinString?.BUY_COINS_TITLE} />
       <Text style={styles.balance}>{coinString?.BALANCE_LABEL}</Text>
 
       <BalanceCard gold={balance.gold} green={balance.green} />
@@ -50,6 +55,7 @@ const BuyCoins = () => {
         showsVerticalScrollIndicator={false}
       />
     </View>
+    </GradientBackground>
   );
 };
 

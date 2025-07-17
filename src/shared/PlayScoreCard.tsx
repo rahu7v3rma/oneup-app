@@ -11,61 +11,61 @@ const PlayScoreCard = () => {
   const styles = getStyles(theme.themeColors);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.leftSection}>
-        <View style={styles.teamRow}>
-          <View style={styles.teamInfo}>
-            <Commanders />
-            <Text style={[styles.teamNameText]}>Commanders</Text>
+    <View>
+      <View style={styles.container}>
+        <View style={styles.leftSection}>
+          <View style={styles.teamRow}>
+            <View style={styles.teamInfo}>
+              <Commanders />
+              <Text style={[styles.teamNameText]}>Commanders</Text>
+            </View>
+            <Text style={styles.recordText}>4 - 8</Text>
           </View>
-          <Text style={styles.recordText}>4 - 8</Text>
-        </View>
-
-        <View style={styles.teamRow}>
-          <View style={styles.teamInfo}>
-            <Eagles />
-            <Text style={[styles.teamNameText, { color: darkColors.text }]}>
-              Eagles
-            </Text>
+          <View style={styles.teamRow}>
+            <View style={styles.teamInfo}>
+              <Eagles />
+              <Text style={[styles.teamNameText, { color: darkColors.text }]}>
+                Eagles
+              </Text>
+            </View>
+            <Text style={styles.recordText}>4 - 8</Text>
           </View>
-          <Text style={styles.recordText}>4 - 8</Text>
-        </View>
-
-        <View style={styles.bottomContainer}>
-          <View style={styles.gameTimeBox}>
-            <Text style={styles.gameDateText}>SUNDAY, 12/01</Text>
-            <Text style={[styles.gameTimeText]}>1:00 PM</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.rightSection}>
-        <View style={styles.bettingRow}>
-          <View style={styles.bettingBox}>
-            <Text style={styles.bettingText}>+10</Text>
-          </View>
-          <View style={styles.bettingBox}>
-            <Text style={styles.bettingText}>O40</Text>
-          </View>
-          <View style={styles.bettingBox}>
-            <Text style={styles.bettingText}>+140</Text>
+          <View style={styles.bottomContainer}>
+            <View style={styles.gameTimeBox}>
+              <Text style={styles.gameDateText}>SUNDAY, 12/01</Text>
+              <Text style={[styles.gameTimeText]}>1:00 PM</Text>
+            </View>
           </View>
         </View>
 
-        <View style={styles.bettingRow}>
-          <View style={styles.bettingBox}>
-            <Text style={styles.bettingText}>-10</Text>
+        <View style={styles.rightSection}>
+          <View style={styles.bettingRow}>
+            <View style={styles.bettingBox}>
+              <Text style={styles.bettingText}>+10</Text>
+            </View>
+            <View style={styles.bettingBox}>
+              <Text style={styles.bettingText}>O40</Text>
+            </View>
+            <View style={styles.bettingBox}>
+              <Text style={styles.bettingText}>+140</Text>
+            </View>
           </View>
-          <View style={styles.bettingBox}>
-            <Text style={styles.bettingText}>U40</Text>
+
+          <View style={styles.bettingRow}>
+            <View style={styles.bettingBox}>
+              <Text style={styles.bettingText}>-10</Text>
+            </View>
+            <View style={styles.bettingBox}>
+              <Text style={styles.bettingText}>U40</Text>
+            </View>
+            <View style={styles.bettingBox}>
+              <Text style={styles.bettingText}>+340</Text>
+            </View>
           </View>
-          <View style={styles.bettingBox}>
-            <Text style={styles.bettingText}>+340</Text>
+          <View style={styles.countdownBox}>
+            <Text style={styles.startsInText}>STARTS IN</Text>
+            <Text style={styles.countdownText}>08:32:30</Text>
           </View>
-        </View>
-        <View style={styles.countdownBox}>
-          <Text style={styles.startsInText}>STARTS IN</Text>
-          <Text style={styles.countdownText}>08:32:30</Text>
         </View>
       </View>
     </View>
@@ -75,10 +75,11 @@ const PlayScoreCard = () => {
 const getStyles = (_themeColors: ThemeColors) => {
   return StyleSheet.create({
     container: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: '#1D2129',
+      backgroundColor: darkColors.charcoalBlue,
       borderRadius: 8,
       padding: 10,
       marginVertical: 4,
@@ -94,6 +95,7 @@ const getStyles = (_themeColors: ThemeColors) => {
     leftSection: {
       flex: 1,
       paddingRight: 16,
+      justifyContent: 'space-between',
     },
     rightSection: {
       justifyContent: 'space-between',
@@ -125,7 +127,6 @@ const getStyles = (_themeColors: ThemeColors) => {
       fontWeight: '500',
     },
     bottomContainer: {
-      marginTop: 12,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -159,7 +160,7 @@ const getStyles = (_themeColors: ThemeColors) => {
     countdownBox: {
       flexDirection: 'row',
       justifyContent: 'center',
-      backgroundColor: '#3D2A2A',
+      backgroundColor: darkColors.darkGray,
       borderRadius: 8,
       paddingHorizontal: 12,
       paddingVertical: 8,
@@ -190,12 +191,12 @@ const getStyles = (_themeColors: ThemeColors) => {
       width: 44,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: '#292D37',
-      borderRadius: 6,
+      backgroundColor: darkColors.darkGray,
+      borderRadius: 3,
     },
     bettingText: {
       color: darkColors.text,
-      fontSize: 10,
+      fontSize: 8,
       lineHeight: 14,
       fontFamily: Fonts.InterSemiBold,
       fontWeight: '600',

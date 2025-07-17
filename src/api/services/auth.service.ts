@@ -11,6 +11,7 @@ const AuthService = {
   register: async (data: any) => {
     try {
       console.log('This is register api ', AuthApiEndpoints.REGISTER);
+      console.log(data);
       const response: AxiosResponse['data'] = await request.post(
         AuthApiEndpoints.REGISTER,
         data,

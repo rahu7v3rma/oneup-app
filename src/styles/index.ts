@@ -332,7 +332,7 @@ export const createStyles = (colors: ThemeColors) => {
       color: colors.textGreen,
     },
     checkBoxTick: {
-      color: colors.mintGreen,
+      color: colors.midnight,
     },
     checkBoxText: {
       color: colors.slate,
@@ -365,6 +365,22 @@ export const createStyles = (colors: ThemeColors) => {
     },
     springGreen: {
       color: colors.springGreen,
+    },
+    textWhite: {
+      color: '#FFFFFF',
+    },
+    textSemiBold: {
+      fontWeight: '600',
+    },
+    greenCoin: {
+      width: 20.5,
+      height: 20.5,
+      resizeMode: 'contain',
+      marginHorizontal: 3,
+    },
+    plusbtn: {
+      width: 32,
+      height: 32,
     },
   });
 };

@@ -32,6 +32,7 @@ import { MatchCard } from '../../shared/matchCard';
 import WeeklyCalendar from '../../shared/WeeklyCalendar';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useThemeStyles } from '../../theme/ThemeStylesProvider';
+import Spacer from '@shared/Spacer';
 
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrAfter);
@@ -446,6 +447,7 @@ const Scores = () => {
 
   return (
     <View style={styles.mainView}>
+      <Spacer multiplier={2} />
       <TopProfileBar label="Scores" />
       <FlatList
         refreshing={refreshing}
@@ -453,12 +455,16 @@ const Scores = () => {
         data={matches}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         ListHeaderComponent={
-          <WeeklyCalendar
-            availableWeeks={availableWeeks}
-            selectedWeek={selectedWeek}
-            onWeekSelect={handleWeekSelect}
-            currentWeekIndex={currentWeekIndex}
-          />
+          <>
+            <View style={styles.matchView} />
+            <WeeklyCalendar
+              availableWeeks={availableWeeks}
+              selectedWeek={selectedWeek}
+              onWeekSelect={handleWeekSelect}
+              currentWeekIndex={currentWeekIndex}
+            />
+            <View style={styles.matchView} />
+          </>
         }
         ListEmptyComponent={
           !loading && showEmptyMessage && !refreshing ? (

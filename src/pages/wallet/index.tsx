@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinkedAccount } from 'types/linkedAccount';
 
 import { MasterCard } from '../../../assets/svgs';
+import TransferIcon from '../../../assets/svgs/transfer.svg';
 import { ThemeColors } from '../../theme/colors';
 import { Fonts } from '../../theme/fonts';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -68,7 +69,7 @@ const Wallet = () => {
       <SafeAreaView style={styles.container}>
         <Header title="Wallet" />
         <Text style={styles.balanceLabel}>Balance</Text>
-        <Text style={[styles.balance, themeStyles.pt10]}>12, 500</Text>
+        <Text style={[styles.balance, themeStyles.pt10]}>$ 12,500</Text>
         <View
           style={[
             themeStyles.flexRow,
@@ -78,7 +79,7 @@ const Wallet = () => {
             themeStyles.gap2,
           ]}
         >
-          <View style={themeStyles.flex1}>
+          <View style={[themeStyles.flex1]}>
             <Button
               title="Transfer"
               onPress={() => {
@@ -87,15 +88,34 @@ const Wallet = () => {
               color="secondary"
               size="lg"
               textStyle={themeStyles.springGreen}
+              icon={
+                <TransferIcon
+                  width={20}
+                  height={20}
+                  fill={theme.themeColors.springGreen}
+                />
+              }
             />
           </View>
-          <View style={themeStyles.flex1}>
+          <View style={[themeStyles.flex1]}>
             <Button
               title="Add Money"
               onPress={() => {
                 navigation.navigate('AddMoneyScreen' as never);
+                // ref.current?.open();
               }}
               size="lg"
+              textStyle={{
+                color: '#000000',
+              }}
+              icon={
+                <FontAwesome6
+                  name="plus"
+                  iconStyle="solid"
+                  size={11.25}
+                  color="#000000"
+                />
+              }
             />
           </View>
         </View>
@@ -198,8 +218,9 @@ const getStyles = (theme: ThemeColors) => {
       color: theme.text,
       fontSize: 38,
       fontFamily: Fonts.InterSemiBold,
-      lineHeight: 21.94,
+      lineHeight: 38,
       fontWeight: '600',
+      marginBottom: 10,
     },
     linkedAccountsLabel: {
       color: theme.text,
@@ -212,7 +233,6 @@ const getStyles = (theme: ThemeColors) => {
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: 'red',
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -244,7 +264,7 @@ const getStyles = (theme: ThemeColors) => {
       lineHeight: 14,
     },
     accountDetails: {
-      color: theme.dimGray,
+      color: theme.slateGray,
       fontSize: 12,
       fontFamily: Fonts.InterRegular,
       lineHeight: 14,

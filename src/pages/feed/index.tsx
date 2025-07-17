@@ -138,7 +138,7 @@ export default function FeedsPage({ navigation }: FeedsPageProps) {
         }),
       );
     }
-  }, [isFocused, postDetails, user.email]);
+  }, [isFocused, postDetails, user?.email]);
 
   useEffect(() => {
     if (!isRefreshing.current) {
@@ -196,7 +196,7 @@ export default function FeedsPage({ navigation }: FeedsPageProps) {
 
   return (
     <GradientBackground>
-      <Spacer multiplier={1.5} />
+      <Spacer multiplier={1.06} />
       <FeedHeader label="Feed" />
       <View style={styles.container}>
         <FlatList
@@ -221,7 +221,7 @@ export default function FeedsPage({ navigation }: FeedsPageProps) {
                         if (post.id === item.id) {
                           let updatedLikes = [...(post.likes || [])];
                           const userReactionIndex = updatedLikes.findIndex(
-                            (like) => like.user.email === user.email,
+                            (like) => like.user.email === user?.email,
                           );
 
                           if (isLiked && reactionType && reactionData) {

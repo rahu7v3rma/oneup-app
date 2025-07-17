@@ -11,13 +11,16 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker'; // Import image picker
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Yup from 'yup';
 
 import { AuthContext } from '../../context/authContext';
+import { ThemeColors } from '../../theme/colors';
 import { Fonts } from '../../theme/fonts';
 import { useTheme } from '../../theme/ThemeProvider';
+import { COMMON } from '../../utils/common';
 
 const CARD_BG = '#181A20';
 const BUTTON_TEXT = '#181A20';
@@ -37,18 +40,43 @@ const Account = () => {
   const styles = createStyles(themeColors);
   const navigation = useNavigation<any>();
   const { user, updateUser } = useContext(AuthContext);
-  const [image] = useState<any | null>(null);
+  const [image, setImage] = useState<any | null>(null);
+
+  // Function to handle image selection
+  const onChangeImage = () => {
+    const options = {
+      mediaType: 'photo' as 'photo',
+      maxWidth: 300,
+      maxHeight: 300,
+    };
+
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        const selectedImage = response.assets[0];
+        setImage(selectedImage); // Update the image state
+      }
+    });
+  };
+
   const onSaveChanges = async (values: {
     email: string;
     display_name: string;
   }) => {
     const success = await updateUser(image, values.email, values.display_name);
-    if (success) navigation.goBack();
+    if (success) {
+      navigation.goBack();
+    }
   };
+
   const fetchedUser = {
     email: user?.email || '',
     display_name: user?.display_name || '',
   };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.appBG }}>
       {/* Header */}
@@ -81,13 +109,15 @@ const Account = () => {
         <View style={styles.profilePicWrapper}>
           <Image
             source={
-              user?.avatar
-                ? { uri: user.avatar }
-                : require('../../../assets/images/default-profile-image.png')
+              image
+                ? { uri: image.uri }
+                : user?.avatar
+                  ? { uri: `${COMMON.imageBaseUrl}${user.avatar}` }
+                  : require('../../../assets/images/default-profile-image.png')
             }
             style={styles.profilePic}
           />
-          <TouchableOpacity style={styles.editIcon} onPress={() => {}}>
+          <TouchableOpacity style={styles.editIcon} onPress={onChangeImage}>
             <View
               style={[
                 styles.editCircle,
@@ -131,7 +161,7 @@ const Account = () => {
                   style={styles.input}
                   placeholder="User Name"
                   placeholderTextColor="#8F8184"
-                  value={values.email}
+                  value={values.display_name}
                   editable={false}
                 />
               </View>
@@ -166,7 +196,7 @@ const Account = () => {
   );
 };
 
-const createStyles = () => {
+const createStyles = (themeColors: ThemeColors) => {
   return StyleSheet.create({
     headerRow: {
       flexDirection: 'row',
@@ -233,14 +263,15 @@ const createStyles = () => {
       marginTop: 18,
     },
     inputCard: {
-      backgroundColor: CARD_BG,
-      borderRadius: 14,
       flexDirection: 'row',
+      justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 18,
-      height: 56,
-      marginBottom: 14,
-      color: '#fff',
+      borderRadius: 8,
+      marginBottom: 6,
+      paddingHorizontal: 16,
+      paddingVertical: 3,
+      height: 55,
+      backgroundColor: themeColors.charcoalBlue,
     },
     input: {
       flex: 1,

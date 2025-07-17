@@ -66,7 +66,7 @@ export default AmountInputBox;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginRight: 4,
+    // marginRight: /2,
   },
   inputBox: {
     backgroundColor: darkColors.charcoalBlue,

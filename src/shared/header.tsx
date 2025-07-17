@@ -16,7 +16,7 @@ type Props = {
 
 const Header: FunctionComponent<Props> = ({ title }: Props) => {
   const navigation = useNavigation<RootNavigationProp>();
-  const themeStyles = useThemeStyles();
+  const styles = useThemeStyles();
 
   const onGoBack = () => {
     navigation.goBack();
@@ -25,31 +25,32 @@ const Header: FunctionComponent<Props> = ({ title }: Props) => {
   return (
     <View
       style={[
-        themeStyles.flexRow,
-        themeStyles.justifyContentBetween,
-        themeStyles.mt11,
-        themeStyles.mb10,
+         styles.flexRow,
+        styles.justifyContentBetween,
+        styles.alignItemsCenter,
+        styles.ph4,
+        styles.pv4,
       ]}
     >
       <View>
         <BackButton onPress={onGoBack} />
       </View>
       <View>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={containerStyles.title}>{title}</Text>
       </View>
       <View>
         <FontAwesome6
           name="ellipsis"
           iconStyle="solid"
           size={20}
-          style={themeStyles.textMuted}
+          style={styles.textMuted}
         />
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const containerStyles = StyleSheet.create({
   title: {
     fontSize: 17,
     lineHeight: 20,

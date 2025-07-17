@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import AppLogo from '../../assets/svgs/appLogo';
@@ -22,23 +22,18 @@ const AuthLayout: FunctionComponent<Props> = ({
   return (
     <LinearGradient
       colors={['#070F17', '#070F17']}
-      start={{ x: 1, y: 1 }}
+      start={{ x: 0, y: 1 }}
       end={{ x: 1, y: 0 }}
       style={themeStyles.flex1}
     >
-      <ScrollView
-        style={themeStyles.flex1}
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.container}>
         {showLogo && (
           <View style={styles.logo}>
             {logoSmall ? <AppLogoSmaller /> : <AppLogo />}
           </View>
         )}
         {children}
-      </ScrollView>
+      </View>
     </LinearGradient>
   );
 };
@@ -47,8 +42,8 @@ export default AuthLayout;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
     flexGrow: 1,
+    padding: 24,
   },
   logo: {
     alignItems: 'center',

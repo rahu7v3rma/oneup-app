@@ -17,6 +17,7 @@ interface TypeOfPlayProps {
   selected: Option;
   onChange: (value: Option) => void;
   containerStyle?: ViewStyle;
+  toggalColor:boolean;
 }
 
 const TypeOfPlay: React.FC<TypeOfPlayProps> = ({
@@ -24,6 +25,7 @@ const TypeOfPlay: React.FC<TypeOfPlayProps> = ({
   selected,
   onChange,
   containerStyle,
+  toggalColor
 }) => {
   return (
     <View style={[styles.container, containerStyle]}>
@@ -33,9 +35,9 @@ const TypeOfPlay: React.FC<TypeOfPlayProps> = ({
           <TouchableOpacity
             key={option}
             onPress={() => onChange(option)}
-            style={[styles.option, isActive && styles.activeOption]}
+            style={[styles.option, isActive && [styles.activeOption,{backgroundColor:toggalColor?'#27f07e25':'#FFD3410A',borderColor:toggalColor?'#27f07ebb':'#FFD34166'}]]}
           >
-            <Text style={[styles.optionText, isActive && styles.activeText]}>
+            <Text style={[styles.optionText, isActive && [styles.activeText,{color:toggalColor?'#13f374d7':'#F9C240'}]]}>
               {option}
             </Text>
           </TouchableOpacity>
@@ -62,7 +64,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activeOption: {
-    backgroundColor: darkColors.darkGreen,
+    backgroundColor: '#27f07e25',
     borderColor: darkColors.darkGreen,
     borderWidth: 1,
     borderRadius: 8,

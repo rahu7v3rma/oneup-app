@@ -1,86 +1,68 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ViewStyle,
-} from 'react-native';
+import React, { FC } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { Commanders, Eagles } from '../../assets/svgs';
-import { darkColors } from '../theme/colors';
-import { Fonts } from '../theme/fonts';
+import { type ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeProvider';
 
-type Option = 'PHL  +3.5' | 'WSH -3.5';
+import Text from './text';
 
-interface TeamOddsProps {
-  options: Option[];
-  selected: Option;
-  onChange: (value: Option) => void;
-  containerStyle?: ViewStyle;
-}
+type TeamInfo = {
+  teamLogo: React.ReactNode;
+  teamName: string;
+  odds: string;
+};
 
-const TeamOdds: React.FC<TeamOddsProps> = ({
-  options,
-  selected,
-  onChange,
-  containerStyle,
-}) => {
+type Props = {
+  teamA: TeamInfo;
+  teamB: TeamInfo;
+};
+
+const TeamOdds: FC<Props> = ({ teamA, teamB }) => {
+  const theme = useTheme();
+  const styles = getStyles(theme.themeColors);
   return (
-    <View style={[styles.container, containerStyle]}>
-      {options.map((option) => {
-        const isActive = selected === option;
-        return (
-          <TouchableOpacity
-            key={option}
-            onPress={() => onChange(option)}
-            style={[styles.option, isActive && styles.activeOption]}
-          >
-            {option === 'PHL  +3.5' ? <Eagles /> : <Commanders />}
-            <Text style={[styles.optionText, isActive && styles.activeText]}>
-              {option}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+    <View style={styles.container}>
+      <View>
+        <Text style={styles.label}>Team Odds</Text>
+      </View>
+      <View style={styles.teamOddsContainer}>
+        {[teamA, teamB].map(({ teamName, teamLogo, odds }) => {
+          return (
+            <View style={styles.teamInfo}>
+              {teamLogo}
+              <Text>{teamName}</Text>
+              <Text>{odds}</Text>
+            </View>
+          );
+        })}
+      </View>
     </View>
   );
 };
 
-export default TeamOdds;
+const getStyles = (themeColors: ThemeColors) =>
+  StyleSheet.create({
+    logo: {},
+    container: {
+      marginHorizontal: 16,
+    },
+    teamOddsContainer: {
+      borderRadius: 8,
+      backgroundColor: themeColors.selectorBgColor,
+      height: 45,
+      flexDirection: 'row',
+      justifyContent: 'space-evenly',
+    },
+    teamInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+    },
+    label: {
+      color: themeColors.textSupporting,
+      fontSize: 16,
+      marginBottom: 15,
+    },
+  });
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    backgroundColor: darkColors.charcoalBlue, // dark background
-    borderRadius: 12,
-    padding: 4,
-  },
-  option: {
-    flex: 1,
-    paddingVertical: 15.5,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activeOption: {
-    backgroundColor: darkColors.darkGreen,
-    borderColor: darkColors.darkGreen,
-    borderWidth: 1,
-    borderRadius: 8,
-  },
-  optionText: {
-    color: darkColors.textSupporting,
-    fontSize: 12,
-    fontWeight: '700',
-    marginLeft: 7,
-    fontFamily: Fonts.InterBold,
-  },
-  activeText: {
-    fontSize: 12,
-    color: darkColors.springGreen,
-    fontWeight: '700',
-    fontFamily: Fonts.InterBold,
-  },
-});
+export default TeamOdds;

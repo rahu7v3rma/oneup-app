@@ -5,8 +5,8 @@ import {
   ViewStyle,
   TextStyle,
   ActivityIndicator,
+  View,
 } from 'react-native';
-
 import { Fonts } from '../theme/fonts';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -16,13 +16,11 @@ type ButtonProps = {
   color?: 'primary' | 'secondary' | 'danger';
   variant?: 'solid' | 'outline';
   size?: 'sm' | 'md' | 'lg';
-  // To override button style
   style?: ViewStyle | ViewStyle[];
-  // To override text style
   textStyle?: TextStyle;
   onPress: () => void;
-  // New loading prop
   loading?: boolean;
+  icon?: React.ReactNode; // New icon prop
 };
 
 const Button = ({
@@ -35,6 +33,7 @@ const Button = ({
   textStyle,
   onPress,
   loading = false,
+  icon,
 }: ButtonProps) => {
   const { themeColors } = useTheme();
 
@@ -106,18 +105,21 @@ const Button = ({
           color={textColor}
         />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            {
-              color: textColor,
-            },
-            textSizeStyles,
-            textStyle,
-          ]}
-        >
-          {title}
-        </Text>
+        <View style={styles.buttonContent}>
+          <Text
+            style={[
+              styles.text,
+              {
+                color: textColor,
+              },
+              textSizeStyles,
+              textStyle,
+            ]}
+          >
+            {title}
+          </Text>
+          {icon && <View style={styles.iconContainer}>{icon}</View>}
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -161,5 +163,13 @@ const styles = StyleSheet.create({
   buttonLargeText: {
     fontSize: 16,
     lineHeight: 20,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconContainer: {
+    marginLeft: 8,
   },
 });

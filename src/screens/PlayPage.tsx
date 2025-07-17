@@ -12,7 +12,7 @@ import { Fonts } from '../theme/fonts';
 export default function PlayPage() {
   return (
     <GradientBackground>
-      <Spacer multiplier={0.1} />
+      <Spacer multiplier={1} />
       <PlayHeader label="Play" />
       <View style={styles.container}>
         <PlayScoreCard />

@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import Button from '@shared/button';
 import Text from '@shared/text';
-import { FC } from 'react';
+import React, { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Info } from '../../../../assets/svgs';
@@ -12,6 +12,7 @@ import { useThemeStyles } from '../../../theme/ThemeStylesProvider';
 
 export interface IStepOne {
   handleSubmit: () => void;
+  visible: boolean;
 }
 /**
  * StepOne Component
@@ -41,11 +42,11 @@ export interface IStepOne {
  * - `useFormikContext`: Provides access to Formik state, especially the `password` value.
  */
 
-export const StepOne: FC<IStepOne> = ({ handleSubmit }) => {
+export const StepOne: FC<IStepOne> = ({ handleSubmit, visible }) => {
   const navigation = useNavigation();
   const themeStyle = useThemeStyles();
 
-  return (
+  return !visible ? null : (
     <>
       <Text style={themeStyle.authTitle}>Create account</Text>
       <Text style={themeStyle.authSubTitle}>
@@ -110,6 +111,7 @@ const styles = StyleSheet.create({
   },
   info: {
     flexDirection: 'row',
+    marginTop: 10,
   },
   infoIcon: {
     marginTop: 3,
@@ -117,13 +119,14 @@ const styles = StyleSheet.create({
   footer: {
     width: 270,
     alignSelf: 'center',
-    marginTop: 50,
+    marginBottom: 30,
+    marginTop: 10,
     alignItems: 'center',
   },
   registerText: {
     fontFamily: Fonts.InterRegular,
   },
   buttonView: {
-    marginTop: 50,
+    marginTop: 40,
   },
 });

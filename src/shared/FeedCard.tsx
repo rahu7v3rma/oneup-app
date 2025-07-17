@@ -51,7 +51,7 @@ export default function FeedCard({
     clearEmoji,
   } = useEmojiReaction({
     currentReactionType:
-      feedDetails.likes?.find((like) => like.user.email === user.email)
+      feedDetails.likes?.find((like) => like.user.email === user?.email)
         ?.reaction_type || null,
     onReactionChange: async (emoji) => {
       if (!onPressLike) return;
@@ -153,7 +153,7 @@ export default function FeedCard({
 
   const renderUserReactionButton = () => {
     const userReaction = feedDetails.likes?.find(
-      (like) => like.user.email === user.email,
+      (like) => like.user.email === user?.email,
     );
 
     if (userReaction) {
@@ -221,6 +221,7 @@ export default function FeedCard({
           <Image
             source={{ uri: feedDetails.image_url || '' }}
             style={styles.feedImage}
+            resizeMode="contain"
           />
         )
       )}

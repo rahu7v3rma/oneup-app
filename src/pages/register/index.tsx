@@ -1,11 +1,14 @@
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import AuthLayout from '@shared/authLayout';
 import { Formik } from 'formik';
 import React, { FC, useContext, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Dimensions, Platform, StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import LinearGradient from 'react-native-linear-gradient';
 import * as Yup from 'yup';
 
+import AppLogoSmaller from '../../../assets/svgs/appLogoSmaller';
 import { AuthContext } from '../../context/authContext';
+import { useThemeStyles } from '../../theme/ThemeStylesProvider';
 
 import { StepOne } from './componets/StepOne';
 import { StepTwo } from './componets/StepTwo';
@@ -25,7 +28,6 @@ import { StepTwo } from './componets/StepTwo';
  * @component
  * @returns {JSX.Element} A scrollable multi-step form with validation and themed styling.
  */
-
 export const RegisterPage: FC = () => {
   const navigation = useNavigation();
   const { register } = useContext(AuthContext);
@@ -102,7 +104,25 @@ export const RegisterPage: FC = () => {
     birthDay: Yup.string()
       .required('Date of birth is required')
       .matches(mmddyyyyRegex, 'Date must be in MM/DD/YYYY format')
-      .test('is-valid-date', 'Invalid calendar date', isValidDate),
+      .test('is-valid-date', 'Invalid calendar date', isValidDate)
+      .test('min-age', 'You must be at least 18 years old', (value) => {
+        if (!value || !isValidDate(value)) return false;
+        const [mm, dd, yyyy] = value.split('/').map(Number);
+        const birthDate = new Date(yyyy, mm - 1, dd);
+        const today = new Date(2025, 6, 11); // Current date: July 11, 2025
+        const age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        const dayDiff = today.getDate() - birthDate.getDate();
+        return (
+          age >= 18 ||
+          (age === 18 && (monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0)))
+        );
+      })
+      .test('max-year', 'Birth year cannot be before 1900', (value) => {
+        if (!value || !isValidDate(value)) return false;
+        const [, , yyyy] = value.split('/').map(Number);
+        return yyyy >= 1900;
+      }),
     phone: Yup.string()
       .matches(/^\d+$/, 'Phone must contain only digits')
       .min(10, 'Phone must be at least 10 digits')
@@ -209,29 +229,64 @@ export const RegisterPage: FC = () => {
     handleSubmit();
   };
 
+  const ScreenHeight = Dimensions.get('window').height;
+  const themeStyles = useThemeStyles();
   return (
-    <AuthLayout>
-      <Formik
-        initialValues={initialValues}
-        onSubmit={handleFormSubmit}
-        validationSchema={getValidationSchema(step)}
-      >
-        {({ handleSubmit, setTouched, validateForm }) => {
-          return (
-            <>
-              {step === 1 && <StepOne handleSubmit={handleSubmit} />}
-              {step === 2 && (
-                <StepTwo
-                  handleSubmit={() =>
-                    handleNextClick(validateForm, setTouched, handleSubmit)
-                  }
-                  isSubmitting={isSubmitting}
-                />
-              )}
-            </>
-          );
+    <LinearGradient
+      colors={['#070F17', '#070F17']}
+      start={{ x: 0, y: 1 }}
+      end={{ x: 1, y: 0 }}
+      style={themeStyles.flex1}
+    >
+      <KeyboardAwareScrollView
+        style={[{ flex: 1 }, styles.container]}
+        contentContainerStyle={{
+          paddingBottom:
+            Platform.OS === 'ios' ? ScreenHeight * 0.01 : ScreenHeight * 0.1,
         }}
-      </Formik>
-    </AuthLayout>
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        extraScrollHeight={150}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <View style={styles.logo}>
+            <AppLogoSmaller />
+          </View>
+        </View>
+        <Formik
+          initialValues={initialValues}
+          onSubmit={handleFormSubmit}
+          validationSchema={getValidationSchema(step)}
+        >
+          {({ handleSubmit, setTouched, validateForm }) => (
+            <>
+              <StepOne visible={step === 1} handleSubmit={handleSubmit} />
+              <StepTwo
+                visible={step === 2}
+                handleSubmit={() =>
+                  handleNextClick(validateForm, setTouched, handleSubmit)
+                }
+                handleBack={() => setStep(1)}
+                isSubmitting={isSubmitting}
+              />
+            </>
+          )}
+        </Formik>
+      </KeyboardAwareScrollView>
+    </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  logo: {
+    alignItems: 'center',
+    marginTop: 50,
+  },
+});

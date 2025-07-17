@@ -1,8 +1,10 @@
 import Icon from '@react-native-vector-icons/ionicons';
+import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import { ScoresNavigationProp } from 'navigation/TabNavigator';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -78,7 +80,11 @@ interface MLBScores {
 }
 
 export default function MLBPage() {
+  console.log('[MLBPage] Component mounted/rendered');
+  
+  const theme = useTheme();
   const themeStyles = useThemeStyles();
+  const navigation = useNavigation<ScoresNavigationProp>();
   const [matches, setMatches] = useState<MLBScores[]>([]);
   const [teamsMap, setTeamsMap] = useState<Record<number, SportsTeam>>({});
   const [scoresMap, setScoresMap] = useState<Record<number, SportsScore>>({});
@@ -172,35 +178,69 @@ export default function MLBPage() {
   }, []);
 
   const fetchAndMapScores = useCallback(async () => {
+    console.log('[MLBPage] fetchAndMapScores - Starting scores fetch');
     let allScores: SportsScore[] = [];
     let currentScorePage = 1;
     let hasMoreScores = true;
 
     while (hasMoreScores) {
+      console.log(`[MLBPage] fetchAndMapScores - Fetching scores page ${currentScorePage}`);
       const scoreResponse = await fetchScores(currentScorePage, 100);
+      console.log(`[MLBPage] fetchAndMapScores - Page ${currentScorePage} response:`, {
+        hasData: !!scoreResponse?.data,
+        listLength: scoreResponse?.data?.list?.length || 0,
+        hasNext: scoreResponse?.data?.has_next
+      });
+      
       allScores = [...allScores, ...scoreResponse.data.list];
       hasMoreScores = scoreResponse.data.has_next;
       currentScorePage++;
     }
 
+    console.log('[MLBPage] fetchAndMapScores - Creating scores mapping:', {
+      totalScores: allScores.length,
+      sampleScores: allScores.slice(0, 3)
+    });
+    
     const scoresMapping = allScores.reduce(
       (acc, score) => ({ ...acc, [score.event]: score }),
       {},
     );
+    
+    console.log('[MLBPage] fetchAndMapScores - Scores mapping completed:', {
+      mappingSize: Object.keys(scoresMapping).length
+    });
+    
     return scoresMapping;
   }, []);
 
   const fetchAndMapTeams = useCallback(async () => {
+    console.log('[MLBPage] fetchAndMapTeams - Starting teams fetch');
     let allTeams: SportsTeam[] = [];
     let currentTeamPage = 1;
     let hasMoreTeams = true;
 
     while (hasMoreTeams) {
+      console.log(`[MLBPage] fetchAndMapTeams - Fetching teams page ${currentTeamPage}`);
       const teamResponse = await fetchTeams(currentTeamPage, 100);
+      console.log(`[MLBPage] fetchAndMapTeams - Page ${currentTeamPage} response:`, {
+        hasData: !!teamResponse?.data,
+        listLength: teamResponse?.data?.list?.length || 0,
+        hasNext: teamResponse?.data?.has_next
+      });
+      
       allTeams = [...allTeams, ...teamResponse.data.list];
       hasMoreTeams = teamResponse.data.has_next;
       currentTeamPage++;
     }
+
+    console.log('[MLBPage] fetchAndMapTeams - Creating teams mapping:', {
+      totalTeams: allTeams.length,
+      sampleTeams: allTeams.slice(0, 3).map(team => ({ 
+        id: team.api_team_id, 
+        name: team.full_name 
+      }))
+    });
 
     const teamMap = allTeams.reduce(
       (acc, team) => ({
@@ -209,6 +249,11 @@ export default function MLBPage() {
       }),
       {},
     );
+    
+    console.log('[MLBPage] fetchAndMapTeams - Teams mapping completed:', {
+      mappingSize: Object.keys(teamMap).length
+    });
+    
     return teamMap;
   }, []);
 
@@ -218,21 +263,49 @@ export default function MLBPage() {
       showLoading = true,
       currentMatches: any[] = matchesRef.current,
     ) => {
-      if (!dataLoaded || isFetching.current) return;
+      console.log('[MLBPage] loadEvents - Starting loadEvents:', {
+        currentPage,
+        showLoading,
+        dataLoaded,
+        isFetching: isFetching.current,
+        selectedWeek: selectedWeek?.displayName || 'All weeks'
+      });
+      
+      if (!dataLoaded || isFetching.current) {
+        console.log('[MLBPage] loadEvents - Skipping loadEvents:', {
+          dataLoaded,
+          isFetching: isFetching.current
+        });
+        return;
+      }
 
       try {
+        console.log('[MLBPage] loadEvents - Setting fetching flag');
         isFetching.current = true;
 
         if (!isRefreshing.current && currentPage === 1 && showLoading) {
+          console.log('[MLBPage] loadEvents - Setting loading to true');
           setLoading(true);
         }
 
+        console.log(`[MLBPage] loadEvents - Fetching events page ${currentPage} with limit ${limit}`);
         const response = await fetchEvents(currentPage, limit);
+        console.log('[MLBPage] loadEvents - Events response:', {
+          hasData: !!response?.data,
+          listLength: response?.data?.list?.length || 0,
+          hasNext: response?.data?.has_next,
+          sampleEvent: response?.data?.list?.[0]
+        });
 
         const filteredEvents = filterEventsByWeek(
           response.data.list,
           selectedWeek,
         );
+        console.log('[MLBPage] loadEvents - Filtered events:', {
+          originalCount: response.data.list.length,
+          filteredCount: filteredEvents.length,
+          selectedWeek: selectedWeek?.displayName || 'All weeks'
+        });
 
         const processedEvents = filteredEvents.map((event: SportsEvent) => {
           const homeTeam = teamsMap[event.home_team];
@@ -310,13 +383,21 @@ export default function MLBPage() {
         setHasNextPage(
           response.data.list.length >= limit && response.data.has_next,
         );
+        console.log('[MLBPage] loadEvents - Events processing completed successfully');
       } catch (err) {
-        console.error('Error loading events:', err);
+        console.error('[MLBPage] loadEvents - Error loading events:', {
+          error: err,
+          message: err?.message,
+          currentPage,
+          selectedWeek: selectedWeek?.displayName || 'All weeks'
+        });
         setError('Failed to load events');
       } finally {
         if (!isRefreshing.current && currentPage === 1 && showLoading) {
+          console.log('[MLBPage] loadEvents - Setting loading to false');
           setLoading(false);
         }
+        console.log('[MLBPage] loadEvents - Setting fetching flag to false');
         isFetching.current = false;
       }
     },
@@ -324,48 +405,103 @@ export default function MLBPage() {
   );
 
   const initializeData = useCallback(async () => {
-    if (isInitialized.current) return;
+    console.log('[MLBPage] initializeData - Starting initialization');
+    
+    if (isInitialized.current) {
+      console.log('[MLBPage] initializeData - Already initialized, skipping');
+      return;
+    }
 
     try {
+      console.log('[MLBPage] initializeData - Setting initialized flag');
       isInitialized.current = true;
 
       if (!isRefreshing.current) {
+        console.log('[MLBPage] initializeData - Setting loading to true');
         setLoading(true);
       }
 
+      console.log('[MLBPage] initializeData - Fetching timeframes...');
       const timeframeResponse = await fetchTimeframes(1, 100);
+      console.log('[MLBPage] initializeData - Timeframes response:', {
+        hasData: !!timeframeResponse?.data,
+        listLength: timeframeResponse?.data?.list?.length || 0,
+        firstItem: timeframeResponse?.data?.list?.[0]
+      });
+      
       const sortedTimeframes = timeframeResponse.data.list.sort((a, b) => {
         if (a.season !== b.season) {
           return a.season - b.season;
         }
         return dayjs(a.start_at).diff(dayjs(b.start_at));
       });
+      console.log('[MLBPage] initializeData - Sorted timeframes:', {
+        count: sortedTimeframes.length,
+        seasons: [...new Set(sortedTimeframes.map(tf => tf.season))]
+      });
 
+      console.log('[MLBPage] initializeData - Fetching teams and scores in parallel...');
       const [teamMap, scoresMapping] = await Promise.all([
         fetchAndMapTeams(),
         fetchAndMapScores(),
       ]);
+      
+      console.log('[MLBPage] initializeData - Teams and scores fetched:', {
+        teamsCount: Object.keys(teamMap).length,
+        scoresCount: Object.keys(scoresMapping).length,
+        sampleTeamIds: Object.keys(teamMap).slice(0, 5),
+        sampleScoreIds: Object.keys(scoresMapping).slice(0, 5)
+      });
 
       setTeamsMap(teamMap);
       setScoresMap(scoresMapping);
 
+      console.log('[MLBPage] initializeData - Generating weeks from timeframes...');
       const weeks = generateWeeksFromTimeframes(sortedTimeframes);
+      console.log('[MLBPage] initializeData - Generated weeks:', {
+        count: weeks.length,
+        currentWeeks: weeks.filter(w => w.isCurrentWeek).length,
+        firstWeek: weeks[0],
+        lastWeek: weeks[weeks.length - 1]
+      });
       setAvailableWeeks(weeks);
 
+      console.log('[MLBPage] initializeData - Finding current week index...');
       const currentIndex = findCurrentWeekIndex(weeks);
+      console.log('[MLBPage] initializeData - Current week index:', currentIndex);
       setCurrentWeekIndex(currentIndex);
 
+      console.log('[MLBPage] initializeData - Setting final state...');
       setSelectedWeek(null);
       setDataLoaded(true);
       setError(null);
+      
+      console.log('[MLBPage] initializeData - Initialization completed successfully');
     } catch (err) {
-      console.error('Error initializing data:', err);
+      console.error('[MLBPage] initializeData - Error during initialization:', {
+        error: err,
+        message: err?.message,
+        stack: err?.stack,
+        name: err?.name
+      });
+      
+      // Log more specific error details
+      if (err?.response) {
+        console.error('[MLBPage] initializeData - API Error details:', {
+          status: err.response.status,
+          statusText: err.response.statusText,
+          data: err.response.data
+        });
+      }
+      
       setError('Failed to initialize data');
       isInitialized.current = false;
     } finally {
       if (!isRefreshing.current) {
+        console.log('[MLBPage] initializeData - Setting loading to false');
         setLoading(false);
       }
+      console.log('[MLBPage] initializeData - Initialization process finished');
     }
   }, [
     fetchAndMapTeams,

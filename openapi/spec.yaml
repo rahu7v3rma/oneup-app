@@ -1,0 +1,1757 @@
+openapi: 3.1.0
+info:
+  title: 1UP Backend OpenAPI spec
+  version: 0.1.0
+paths:
+  /post:
+    get:
+      operationId: list_posts
+      description: Retrireve a paginated list of posts with detailed tweet information.
+      parameters:
+        - name: page
+          in: query
+          required: true
+          description: Page number for pagination.
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: true
+          description: Number of posts to retrieve per page.
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Posts fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      posts:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            bookmarks:
+                              type: array
+                              items:
+                                type: string
+                            likes:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  first_name:
+                                    type: string
+                                  last_name:
+                                    type: string
+                                  email:
+                                    type: string
+                            api_id:
+                              type: string
+                            tweet_id:
+                              type: integer
+                            tweet_url:
+                              type: string
+                              format: uri
+                            published_timestamp:
+                              type: string
+                            profile_image_url:
+                              type: string
+                              format: uri
+                              nullable: true
+                            text_body:
+                              type: string
+                            username:
+                              type: string
+                            content_type:
+                              type: string
+                            video_url:
+                              type: string
+                              format: uri
+                              nullable: true
+                            image_url:
+                              type: string
+                              format: uri
+                              nullable: true
+                            screen_name:
+                              type: string
+                            aspect_ratio:
+                              type: string
+                            duration_ms:
+                              type: integer
+                            sport:
+                              type: string
+                            created_at:
+                              type: string
+                              format: date-time
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      has_next:
+                        type: boolean
+                example:
+                  success: true
+                  message: "Posts fetched successfully."
+                  data:
+                    posts:
+                      - id: 1
+                        bookmarks: []
+                        likes: []
+                        api_id: "default_api_id"
+                        tweet_id: 1
+                        tweet_url: "http://google.com"
+                        published_timestamp: "1"
+                        profile_image_url: "https://randomuser.me/api/portraits/men/75.jpg"
+                        text_body: "This is my text for first post this is my text for post. This is my text for first post this is my text for post. This is my text for first post this is my text for post. This is my text for first post this is my text for post."
+                        username: "Eng"
+                        content_type: "1"
+                        video_url: "https://www.w3schools.com/html/mov_bbb.mp4"
+                        image_url: "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d"
+                        screen_name: "1"
+                        aspect_ratio: "1"
+                        duration_ms: 1
+                        sport: "Uncategorized"
+                        created_at: "2025-04-29T15:03:54.647073Z"
+                      - id: 2
+                        bookmarks: []
+                        likes: []
+                        api_id: "default_api_2"
+                        tweet_id: 2
+                        tweet_url: "http://google.com/1"
+                        published_timestamp: "1"
+                        profile_image_url: "https://randomuser.me/api/portraits/men/75.jpg"
+                        text_body: "This is my text for first post this is my text for postThis is my text for first post this is my text for post"
+                        username: "Bilal"
+                        content_type: "2"
+                        video_url: null
+                        image_url: "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d"
+                        screen_name: "1"
+                        aspect_ratio: "1"
+                        duration_ms: 1
+                        sport: "Uncategorized"
+                        created_at: "2025-04-29T15:03:54.647073Z"
+                      - id: 3
+                        bookmarks: []
+                        likes: []
+                        api_id: "default_api_3"
+                        tweet_id: 3
+                        tweet_url: "http://google.com/3"
+                        published_timestamp: "1"
+                        profile_image_url: "https://randomuser.me/api/portraits/men/75.jpg"
+                        text_body: "This is my text for first post this is my text for postThis is my text for first post this is my text for post"
+                        username: "Bilal"
+                        content_type: "2"
+                        video_url: null
+                        image_url: null,
+                        screen_name: "1"
+                        aspect_ratio: "1"
+                        duration_ms: 1
+                        sport: "Uncategorized"
+                        created_at: "2025-04-29T15:03:54.647073Z"
+                    total: 3
+                    page: 1
+                    has_next: false
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                examples:
+                  example:
+                    detail: Invalid token   
+      tags:
+        - post
+      security:
+        - auth_key: []
+  
+  /post/:
+    get:
+      $ref: '#/paths/~1post/get' # Reuse the same definition as /post      
+
+  /user/login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Email for login attempt
+                password:
+                  type: string
+                  description: Password for login attempt
+                coach:
+                  type: boolean
+                  default: false
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Credentials are correct
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      username:
+                        type: string
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      email:
+                        type: string
+                      auth_token:
+                        type: string
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: User logged in successfully.
+                    status: 200
+                    data:
+                      id: 1
+                      username: user1
+                      first_name: Some
+                      last_name: Name
+                      email: user1@example.example
+                      auth_token: abcd1234
+        '400':
+          description: Request is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+        '401':
+          description: Bad credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: bad_credentials
+                    message: Bad credentials.
+                    status: 401
+                    data: { }
+        '403':
+          description: Credentials correct but user has to change password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: must_change_password
+                    message: Please change your password.
+                    status: 403
+                    data: { }
+      description: Log in to an existing account
+  /user/sign-up:
+    post:
+      operationId: user_sign-up_create
+      description: Sign up new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+              required:
+                - email
+                - password
+                - first_name
+                - last_name
+            examples:
+              example:
+                value:
+                  email: admin@gmail.com
+                  password: '123456'
+                  first_name: John
+                  last_name: Doe
+      responses:
+        '200':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      username:
+                        type: string
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      email:
+                        type: string
+                      auth_token:
+                        type: string
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: User successfully created.
+                    status: 200
+                    data:
+                      id: 1
+                      username: user1
+                      first_name: Some
+                      last_name: Name
+                      email: user1@example.example
+                      auth_token: abcd1234
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  code:
+                    type: string
+                  status:
+                    type: integer
+                  data:
+                    type: object
+                    properties: { }
+              examples:
+                example:
+                  value:
+                    success: false
+                    message: Email already exists.
+                    code: email_already_exists
+                    status: 401
+                    data: { }
+  /user/logout:
+    post:
+      operationId: user_logout_create
+      description: Logout an active session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string                     
+      responses:
+        '200':
+          description: Logged out successfuly
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    additionalProperties: true
+                examples:
+                  example:
+                    success: true
+                    message: User logged out successfully.
+                    status: 200
+                    data: { }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                examples:
+                  example:
+                    detail: Invalid token
+      tags:
+        - user
+      security:
+        - auth_key: [ ]
+  /profile/:
+    parameters: [ ]
+    get:
+      summary: ''
+      operationId: get-profile
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type:
+                          - string
+                          - 'null'
+                      username:
+                        type:
+                          - string
+                          - 'null'
+                      first_name:
+                        type:
+                          - string
+                          - 'null'
+                      last_name:
+                        type:
+                          - string
+                          - 'null'
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: User profile fetched successfully.
+                    status: 200
+                    data:
+                      email: test@gmaail.com
+                      username: test user
+                      first_name: test
+                      last_name: user
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: unauthorized
+                    message: Unauthorized.
+                    status: 401
+                    data: { }
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: not_found
+                    message: Profile does not exist.
+                    status: 404
+                    data: { }
+      security:
+        - auth_key: [ ]
+  /user/reset/request:
+    post:
+      summary: ''
+      operationId: post-user-reset-request
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Reset password requested successfully.
+                    status: 200
+                    data: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: server_error
+                    message: Server error.
+                    status: 500
+                    data: { }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                client:
+                  type: string
+      description: Request a reset password code via email
+  /user/reset/verify:
+    post:
+      summary: ''
+      operationId: post-user-reset-verify
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Reset password verified successfully.
+                    status: 200
+                    data: { }
+            application/xml:
+              schema:
+                type: object
+                properties: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+                example-1:
+                  value:
+                    success: false
+                    code: bad_token
+                    message: Invalid or expired token.
+                    status: 400
+                    data: { }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      description: Verify that a reset password code is valid
+  /user/reset/confirm:
+    post:
+      summary: ''
+      operationId: post-user-reset-confirm
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Reset password confirmed successfully.
+                    status: 200
+                    data: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Bad request.
+                    status: 400
+                    data: { }
+                example-1:
+                  value:
+                    success: false
+                    code: password_does_not_conform
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+                example-2:
+                  value:
+                    success: false
+                    code: bad_token
+                    message: Invalid or expired token.
+                    status: 400
+                    data: { }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+      description: Use a reset password code to change a user's password
+  /user/verify-account/request:
+    post:
+      operationId: user_verify_account_request
+      description: Request a verify account email
+      requestBody:
+        content:
+          application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              status:
+                type: integer
+              data:
+                type: object
+            x-examples:
+              example:
+                success: true
+                message: Email verified successfully.
+                status: 200
+                data: [ ]
+          examples:
+            example:
+              success: true
+              message: Email verified successfully.
+              status: 200
+              data: [ ]
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              code:
+                type: string
+              status:
+                type: integer
+              data:
+                type: object
+                properties:
+                  email:
+                    type: array
+                    items:
+                      type: string
+            x-examples:
+              Example:
+                success: false
+                message: Request is invalid.
+                code: request_invalid
+                status: 400
+                data:
+                  email:
+                    - This field is required.
+          examples:
+            example:
+              success: false
+              message: Request is invalid.
+              code: request_invalid
+              status: 400
+              data:
+                email:
+                  - This field is required.
+        '404':
+          description: email_does_not_exists
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              code:
+                type: string
+              status:
+                type: integer
+              data:
+                type: object
+                properties: { }
+            x-examples:
+              example:
+                success: false
+                message: Email does not exist.
+                code: email_does_not_exists
+                status: 404
+                data: { }
+          examples:
+            example:
+              success: false
+              message: Email does not exist.
+              code: email_does_not_exists
+              status: 404
+              data: { }
+      tags:
+        - user
+  /user/verify-account/confirm:
+    post:
+      operationId: confirm verify account
+      description: confirm verify account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '201':
+          description: ''
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              status:
+                type: integer
+              data:
+                type: object
+            x-examples:
+              example:
+                success: true
+                message: Account Verified Successfully
+                status: 201
+                data:
+                  username: john
+                  first_name: john
+                  last_name: Doe
+                  email: john@gmail.com
+                  auth_token: 804fd8a9261acf37d1e30951bf663e950c385d85
+          examples:
+            example:
+              success: true
+              message: Account Verified Successfully
+              status: 201
+              data:
+                username: john
+                first_name: john
+                last_name: Doe
+                email: john@gmail.com
+                auth_token: 804fd8a9261acf37d1e30951bf663e950c385d85
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              code:
+                type: string
+              status:
+                type: integer
+              data:
+                type: object
+                properties:
+                  token:
+                    type: array
+                    items:
+                      type: string
+            x-examples:
+              Example:
+                success: false
+                message: Request is invalid.
+                code: request_invalid
+                status: 400
+                data:
+                  token:
+                    - This field is required.
+          examples:
+            example:
+              success: false
+              message: Request is invalid.
+              code: request_invalid
+              status: 400
+              data:
+                token:
+                  - This field is required.
+      tags:
+        - user
+    parameters: [ ]
+  /post/{postId}/:
+    get:
+      operationId: get_post_details
+      description: Retrieve detailed information about a specific post by its ID.
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          description: ID of the post to retrieve.
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Post retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      api_id:
+                        type: string
+                      tweet_id:
+                        type: integer
+                      tweet_url:
+                        type: string
+                        format: uri
+                      published_timestamp:
+                        type: string
+                      profile_image_url:
+                        type: string
+                        nullable: true
+                      text_body:
+                        type: string
+                      username:
+                        type: string
+                      content_type:
+                        type: string
+                      video_url:
+                        type: string
+                        format: uri
+                        nullable: true
+                      image_url:
+                        type: string
+                        format: uri
+                        nullable: true
+                      screen_name:
+                        type: string
+                      aspect_ratio:
+                        type: string
+                      duration_ms:
+                        type: integer
+                      sport:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
+                example:
+                  success: true
+                  message: "Post retrieved successfully"
+                  data:
+                    id: 1
+                    api_id: "default_api_id"
+                    tweet_id: 1917489107514573000
+                    tweet_url: "https://twitter.com/WisdenCricket/status/1917489107514572936"
+                    published_timestamp: "1746000037933"
+                    profile_image_url: ""
+                    text_body: "🗣️ \"Why does the rationale exist for an eight-team World Cup if the quality is there for a larger one?\" West Indies, semi-finalists at last year's T20 World Cup, did not qualify for this year's World Cup in India. 🤝 @Metro_Bank"
+                    username: "WisdenCricket"
+                    content_type: "video"
+                    video_url: "https://video.twimg.com/amplify_video/1917198268863336448/vid/avc1/1080x1920/YN93hS5JOmQ6ODb7.mp4?tag=16"
+                    image_url: null
+                    screen_name: "Wisden"
+                    aspect_ratio: "9:16"
+                    duration_ms: 72240
+                    sport: "Uncategorized"
+                    created_at: "2025-04-30T07:39:03.844460Z"
+        '404':
+          description: Post not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+              example:
+                detail: "Post not found"
+      tags:
+        - post
+      security:
+        - auth_key: []
+  
+  /post/{post_id}/like/:
+    post:
+      summary: Like a post
+      operationId: post-like-post
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Post liked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      post:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          likes:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                first_name:
+                                  type: string
+                                last_name:
+                                  type: string
+                                email:
+                                  type: string
+                          api_id:
+                            type: string
+                          tweet_id:
+                            type: integer
+                          tweet_url:
+                            type: string
+                          published_timestamp:
+                            type: string
+                          profile_image_url:
+                            type: string
+                          text_body:
+                            type: string
+                          username:
+                            type: string
+                          content_type:
+                            type: string
+                          video_url:
+                            type: string
+                          image_url:
+                            type: string
+                          screen_name:
+                            type: string
+                          aspect_ratio:
+                            type: string
+                          duration_ms:
+                            type: integer
+                          sport:
+                            type: string
+                          created_at:
+                            type: string
+                            format: date-time
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          first_name:
+                            type: string
+                          last_name:
+                            type: string
+                          email:
+                            type: string
+                      created_at:
+                        type: string
+                        format: date-time
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Post liked successfully
+                    data:
+                      id: 4
+                      post:
+                        id: 1
+                        likes:
+                          - id: 1
+                            first_name: ""
+                            last_name: ""
+                            email: "admin@gmail.com"
+                        api_id: "6814bf8e43ca666e2e53ad92"
+                        tweet_id: 1918285040041033700
+                        tweet_url: "https://twitter.com/YahooSportsstatus/1918285040041033767"
+                        published_timestamp: "1746190221042"
+                        profile_image_url: "https://pbs.twimg.com/profile_images/1700172399973421056/_xxxJmXc_normal.jpg"
+                        text_body: "Inside @kendallbaker's Yahoo Sports AM ☀️  ⚾️ Mike Trout has been placed on the IL with a bone bruise in his knee..."
+                        username: "YahooSports"
+                        content_type: "photo"
+                        video_url: ""
+                        image_url: "https://pbs.twimg.com/media/Gp8d_0sWQAA45FY.jpg"
+                        screen_name: "Yahoo Sports"
+                        aspect_ratio: "4:5"
+                        duration_ms: 0
+                        sport: "undefined"
+                        created_at: "2025-05-02T13:14:01.584465Z"
+                      user:
+                        id: 1
+                        first_name: ""
+                        last_name: ""
+                        email: "admin@gmail.com"
+                      created_at: "2025-05-06T07:25:46.641541Z"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: {}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: server_error
+                    message: Server error.
+                    status: 500
+                    data: {}
+    delete:
+      summary: Unlike a post
+      operationId: delete-post-like
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Post unliked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Post unliked successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: {}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: server_error
+                    message: Server error.
+                    status: 500
+                    data: {}
+
+  /sports/timeframes:
+    get:
+      operationId: list_sports_timeframes
+      description: Retrieve a paginated list of sports timeframes/seasons.
+      parameters:
+        - name: page
+          in: query
+          required: true
+          description: Page number for pagination.
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: true
+          description: Number of timeframes to retrieve per page.
+          schema:
+            type: integer
+            example: 100
+      responses:
+        '200':
+          description: Timeframes fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            api_season_id:
+                              type: string
+                            season_type:
+                              type: integer
+                            season:
+                              type: integer
+                            name:
+                              type: string
+                            start_at:
+                              type: string
+                              format: date-time
+                            end_at:
+                              type: string
+                              format: date-time
+                      page:
+                        type: integer
+                      has_next:
+                        type: boolean
+                      total:
+                        type: integer
+                example:
+                  success: true
+                  message: "Timeframes fetched successfully."
+                  status: 200
+                  data:
+                    list:
+                      - id: 1
+                        api_season_id: "2024"
+                        season_type: 1
+                        season: 2024
+                        name: "2024 Regular Season"
+                        start_at: "2024-03-01T00:00:00Z"
+                        end_at: "2024-10-31T23:59:59Z"
+                    page: 1
+                    has_next: false
+                    total: 1
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                examples:
+                  example:
+                    detail: Invalid token
+      tags:
+        - sports
+      security:
+        - auth_key: []
+
+  /sports/teams:
+    get:
+      operationId: list_sports_teams
+      description: Retrieve a paginated list of sports teams.
+      parameters:
+        - name: page
+          in: query
+          required: true
+          description: Page number for pagination.
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: true
+          description: Number of teams to retrieve per page.
+          schema:
+            type: integer
+            example: 100
+      responses:
+        '200':
+          description: Teams fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            api_team_id:
+                              type: integer
+                            record:
+                              type: string
+                              nullable: true
+                            short_name:
+                              type: string
+                            full_name:
+                              type: string
+                            logo_url:
+                              type: string
+                            conference:
+                              type: string
+                            type:
+                              type: string
+                      page:
+                        type: integer
+                      has_next:
+                        type: boolean
+                      total:
+                        type: integer
+                example:
+                  success: true
+                  message: "Teams fetched successfully."
+                  status: 200
+                  data:
+                    list:
+                      - id: 1
+                        api_team_id: 101
+                        record: "10-5"
+                        short_name: "LAD"
+                        full_name: "Los Angeles Dodgers"
+                        logo_url: "https://example.com/dodgers-logo.png"
+                        conference: "National League"
+                        type: "MLB"
+                    page: 1
+                    has_next: false
+                    total: 30
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                examples:
+                  example:
+                    detail: Invalid token
+      tags:
+        - sports
+      security:
+        - auth_key: []
+
+  /sports/scores:
+    get:
+      operationId: list_sports_scores
+      description: Retrieve a paginated list of sports scores.
+      parameters:
+        - name: page
+          in: query
+          required: true
+          description: Page number for pagination.
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: true
+          description: Number of scores to retrieve per page.
+          schema:
+            type: integer
+            example: 100
+      responses:
+        '200':
+          description: Scores fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            home_team_score:
+                              type: integer
+                            away_team_score:
+                              type: integer
+                            event:
+                              type: integer
+                      page:
+                        type: integer
+                      has_next:
+                        type: boolean
+                      total:
+                        type: integer
+                example:
+                  success: true
+                  message: "Scores fetched successfully."
+                  status: 200
+                  data:
+                    list:
+                      - id: 1
+                        home_team_score: 7
+                        away_team_score: 3
+                        event: 101
+                    page: 1
+                    has_next: false
+                    total: 100
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                examples:
+                  example:
+                    detail: Invalid token
+      tags:
+        - sports
+      security:
+        - auth_key: []
+
+  /sports/events:
+    get:
+      operationId: list_sports_events
+      description: Retrieve a paginated list of sports events.
+      parameters:
+        - name: page
+          in: query
+          required: true
+          description: Page number for pagination.
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: true
+          description: Number of events to retrieve per page.
+          schema:
+            type: integer
+            example: 100
+      responses:
+        '200':
+          description: Events fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            api_event_id:
+                              type: integer
+                            season_type:
+                              type: integer
+                            season:
+                              type: integer
+                            week:
+                              type: integer
+                            home_team:
+                              type: integer
+                            away_team:
+                              type: integer
+                            status:
+                              type: string
+                            bet_point_spread:
+                              type: number
+                            bet_over_under:
+                              type: number
+                            bet_home_team_money_line:
+                              type: number
+                            bet_away_team_money_line:
+                              type: number
+                            start_at:
+                              type: string
+                              format: date-time
+                      page:
+                        type: integer
+                      has_next:
+                        type: boolean
+                      total:
+                        type: integer
+                example:
+                  success: true
+                  message: "Events fetched successfully."
+                  status: 200
+                  data:
+                    list:
+                      - id: 1
+                        api_event_id: 12345
+                        season_type: 1
+                        season: 2024
+                        week: 15
+                        home_team: 101
+                        away_team: 102
+                        status: "Final"
+                        bet_point_spread: -1.5
+                        bet_over_under: 8.5
+                        bet_home_team_money_line: -120
+                        bet_away_team_money_line: 110
+                        start_at: "2024-10-15T19:00:00Z"
+                    page: 1
+                    has_next: true
+                    total: 250
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                examples:
+                  example:
+                    detail: Invalid token
+      tags:
+        - sports
+      security:
+        - auth_key: []
+
+  /sports/upcoming-events:
+    get:
+      operationId: list_upcoming_sports_events
+      description: Retrieve a paginated list of upcoming sports events.
+      parameters:
+        - name: page
+          in: query
+          required: true
+          description: Page number for pagination.
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: true
+          description: Number of upcoming events to retrieve per page.
+          schema:
+            type: integer
+            example: 100
+      responses:
+        '200':
+          description: Upcoming events fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            api_event_id:
+                              type: integer
+                            season_type:
+                              type: integer
+                            season:
+                              type: integer
+                            week:
+                              type: integer
+                            home_team:
+                              type: integer
+                            away_team:
+                              type: integer
+                            status:
+                              type: string
+                            bet_point_spread:
+                              type: number
+                            bet_over_under:
+                              type: number
+                            bet_home_team_money_line:
+                              type: number
+                            bet_away_team_money_line:
+                              type: number
+                            start_at:
+                              type: string
+                              format: date-time
+                            active_users:
+                              type: integer
+                              nullable: true
+                            active_wagers:
+                              type: integer
+                              nullable: true
+                      page:
+                        type: integer
+                      has_next:
+                        type: boolean
+                      total:
+                        type: integer
+                example:
+                  success: true
+                  message: "Upcoming events fetched successfully."
+                  status: 200
+                  data:
+                    list:
+                      - id: 1
+                        api_event_id: 12346
+                        season_type: 1
+                        season: 2024
+                        week: 16
+                        home_team: 103
+                        away_team: 104
+                        status: "Scheduled"
+                        bet_point_spread: -2.5
+                        bet_over_under: 9.0
+                        bet_home_team_money_line: -140
+                        bet_away_team_money_line: 120
+                        start_at: "2024-10-22T19:00:00Z"
+                        active_users: 25
+                        active_wagers: 10
+                    page: 1
+                    has_next: true
+                    total: 150
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                examples:
+                  example:
+                    detail: Invalid token
+      tags:
+        - sports
+      security:
+        - auth_key: []
+
+components:
+  schemas:
+    error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Error details
+        code:
+          type: string
+        message:
+          type: string
+        status:
+          type: integer
+        data:
+          type: object
+  securitySchemes:
+ 
+

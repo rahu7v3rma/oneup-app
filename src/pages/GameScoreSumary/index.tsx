@@ -1,3 +1,4 @@
+import Spacer from '@shared/Spacer';
 import TopProfileBar from '@shared/TopProfileBar';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +12,7 @@ const GameScoreSumary = () => {
   const styles = getStyles(theme.themeColors);
   return (
     <SafeAreaView style={styles.container}>
+      <Spacer multiplier={1} />
       <TopProfileBar backButton />
       <GameScore />
     </SafeAreaView>

@@ -22,10 +22,13 @@ export type ThemeColors = {
   textGreen: string;
   mintGreen: string;
   springGreen: string;
+  dullGreen: string;
   slate: string;
   slateGray: string;
-  charcoalBlue: string;
   darkGreen: string;
+  charcoalBlue: string;
+  selectorBgColor: string;
+  transparentSpringGreen: string;
 
   // new theme colors
   appBGGradient: {
@@ -34,6 +37,7 @@ export type ThemeColors = {
     gradientEnd: string;
   };
   textDetail: string;
+  darkGray: string;
 };
 
 export const lightColors: ThemeColors = {
@@ -59,12 +63,15 @@ export const lightColors: ThemeColors = {
   inputBgColor: '#1B2366',
   midnight: '#070F17',
   textGreen: '#26F07DCC',
+  darkGreen: '#27F07D4D',
   mintGreen: '#26F07D99',
   springGreen: '#26F07D',
-  darkGreen: '#26F07D4D',
+  dullGreen: '#26F07D4D',
   slate: '#A1A2B0',
   slateGray: '#616376',
   charcoalBlue: '#161C23',
+  selectorBgColor: '#1D2129',
+  transparentSpringGreen: '#26F07D0D',
 
   // new theme colors
   appBGGradient: {
@@ -77,6 +84,7 @@ export const lightColors: ThemeColors = {
   //gray color
   mutedText: '#8F8184',
   textDetail: '#E6E7EC',
+  darkGray: '#1C242C',
 };
 
 export const darkColors: ThemeColors = {
@@ -106,9 +114,12 @@ export const darkColors: ThemeColors = {
   mintGreen: '#26F07D99',
   springGreen: '#26F07D',
   darkGreen: '#26F07D4D',
+  dullGreen: '#26F07D4D',
   slate: '#A1A2B0',
   slateGray: '#616376',
   charcoalBlue: '#161C23',
+  selectorBgColor: '#1D2129',
+  transparentSpringGreen: '#26F07D0D',
 
   // new theme colors
   appBGGradient: {
@@ -122,4 +133,5 @@ export const darkColors: ThemeColors = {
   mutedText: '#616376',
   textSupporting: '#9C9DA9',
   textDetail: '#E6E7EC',
+  darkGray: '#1C242C',
 };

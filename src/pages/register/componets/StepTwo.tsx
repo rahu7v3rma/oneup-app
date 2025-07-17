@@ -1,6 +1,6 @@
 import Button from '@shared/button';
 import Text from '@shared/text';
-import { FC } from 'react';
+import React, { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import DateInputField from '../../../shared/dateInput';
@@ -9,7 +9,9 @@ import { useThemeStyles } from '../../../theme/ThemeStylesProvider';
 
 export interface IStepTwo {
   handleSubmit: () => void;
+  handleBack: () => void;
   isSubmitting: boolean;
+  visible: boolean;
 }
 /**
  * StepTwo Component
@@ -32,25 +34,40 @@ export interface IStepTwo {
  * - Center-aligned header text and clean spacing between fields.
  */
 
-export const StepTwo: FC<IStepTwo> = ({ handleSubmit, isSubmitting }) => {
+export const StepTwo: FC<IStepTwo> = ({
+  handleSubmit,
+  isSubmitting,
+  handleBack,
+  visible,
+}) => {
   const themeStyles = useThemeStyles();
+  const eighteenYearsAgo = new Date();
+  eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 17);
 
-  return (
+  return !visible ? null : (
     <>
       <Text style={themeStyles.authTitle}>Account details</Text>
       <View style={styles.formContainer}>
         <InputField name="firstName" placeholder="First name" />
         <InputField name="lastName" placeholder="Last name" />
-        <DateInputField name="birthDay" placeHolder="DOB" />
+        <DateInputField
+          minimumDate={new Date(1900, 0, 1)}
+          maximumDate={eighteenYearsAgo}
+          name="birthDay"
+          placeholder="DOB"
+        />
         <InputField name="phone" placeholder="Phone" numbersOnly />
       </View>
       <View style={styles.buttonView}>
         <Button
           size="lg"
-          title="Continue"
+          title="Register"
           onPress={handleSubmit}
           loading={isSubmitting}
         />
+      </View>
+      <View style={styles.buttonView}>
+        <Button size="lg" title="Back" onPress={handleBack} />
       </View>
     </>
   );
@@ -71,5 +88,6 @@ const styles = StyleSheet.create({
   buttonView: {
     flex: 1,
     justifyContent: 'center',
+    marginTop: 30,
   },
 });

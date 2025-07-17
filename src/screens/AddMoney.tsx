@@ -1,7 +1,7 @@
-// AddMoneyScreen.tsx
 import { useNavigation } from '@react-navigation/native';
 import Button from '@shared/button';
 import GooglePayButton from '@shared/googlePayButton';
+import Spacer from '@shared/Spacer';
 import AccountCard from '@shared/walletComponents/AccountCard';
 import AmountInputBox from '@shared/walletComponents/AmountInputBox';
 import AmountSelector from '@shared/walletComponents/AmountSelector';
@@ -31,7 +31,7 @@ const AddMoneyScreen = () => {
       Toast.show({
         type: 'success',
         position: 'bottom',
-        text1: '$50 Added to Wallet',
+        text1: `$${amount.toFixed(2)} Added to Wallet`,
       });
     } else {
       setIsConfirmed(true);
@@ -40,14 +40,26 @@ const AddMoneyScreen = () => {
   };
 
   const handleGooglePay = () => {
-    // Apple Pay logic
+    // Google Pay logic
   };
+
   const handleApplePay = () => {
     // Apple Pay logic
   };
 
   const handleEdit = () => {
-    // Open amount input/edit modal or similar
+    // Allow editing by resetting confirmation state
+    setIsConfirmed(false);
+    setHeaderTitle('Add Money');
+  };
+
+  const handleAmountChange = (newAmount: number) => {
+    // Update the amount state if the input is valid
+    if (newAmount > 0) {
+      setAmount(newAmount);
+    } else {
+      setAmount(0); // Reset to 0 or handle invalid input as needed
+    }
   };
 
   const onGoBack = () => {
@@ -56,9 +68,10 @@ const AddMoneyScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Spacer />
       <View style={styles.header}>
         <BackButton onPress={onGoBack} />
-        <Text style={styles.headerText}>Add Money</Text>
+        <Text style={styles.headerText}>{headerTitle}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -67,7 +80,7 @@ const AddMoneyScreen = () => {
           value={amount}
           editable={!isConfirmed}
           onEditPress={handleEdit}
-          onChange={() => {}}
+          onChange={handleAmountChange}
         />
         {!isConfirmed && (
           <AmountSelector
@@ -131,7 +144,7 @@ const getStyles = (theme: ThemeColors) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: darkColors.appBG,
+      backgroundColor: theme.appBG,
     },
     scrollContainer: {
       padding: 16,

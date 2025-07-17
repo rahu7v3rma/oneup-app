@@ -1,8 +1,9 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
+// import DateTimePicker from '@react-native-community/datetimepicker';
 import { useField } from 'formik';
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 import CalendarIcon from '../../assets/svgs/calendarIcon';
 import { useTheme } from '../theme/ThemeProvider';
@@ -10,10 +11,17 @@ import { useThemeStyles } from '../theme/ThemeStylesProvider';
 
 interface Props {
   name: string;
-  placeHolder: string;
+  placeholder: string;
+  minimumDate?: Date;
+  maximumDate?: Date;
 }
 
-const DateInputField = ({ name, placeHolder }: Props) => {
+const DateInputField = ({
+  name,
+  placeholder,
+  minimumDate,
+  maximumDate,
+}: Props) => {
   const [field, meta, helpers] = useField(name);
   const { themeColors } = useTheme();
   const themeStyles = useThemeStyles();
@@ -22,7 +30,15 @@ const DateInputField = ({ name, placeHolder }: Props) => {
   const handleChange = (_event: any, selectedDate?: Date) => {
     setShowPicker(false);
     if (selectedDate) {
-      const formatted = `${String(selectedDate.getMonth() + 1).padStart(2, '0')}/${String(selectedDate.getDate()).padStart(2, '0')}/${selectedDate.getFullYear()}`;
+      const boundedDate = new Date(
+        Math.max(
+          minimumDate?.getTime() || -Infinity,
+          Math.min(maximumDate?.getTime() || Infinity, selectedDate.getTime()),
+        ),
+      );
+      const formatted = `${String(boundedDate.getMonth() + 1).padStart(2, '0')}/${String(
+        boundedDate.getDate(),
+      ).padStart(2, '0')}/${boundedDate.getFullYear()}`;
       helpers.setValue(formatted);
     }
   };
@@ -30,81 +46,82 @@ const DateInputField = ({ name, placeHolder }: Props) => {
   const getInitialDate = () => {
     const parts = field.value?.split('/');
     if (parts?.length === 3) {
-      const [month, day, year] = parts;
-      const parsedDate = new Date(`${year}-${month}-${day}`);
+      const [month, day, year] = parts.map(Number);
+      const parsedDate = new Date(year, month - 1, day);
       if (!isNaN(parsedDate.getTime())) {
+        if (minimumDate && parsedDate < minimumDate) {
+          return minimumDate;
+        }
+        if (maximumDate && parsedDate > maximumDate) {
+          return maximumDate;
+        }
         return parsedDate;
       }
     }
-    return new Date();
+    return minimumDate || new Date();
   };
 
   const isEmpty = !field.value;
 
   return (
-    <LinearGradient
-      colors={['#151A20', '#1B2128']}
-      start={{ x: 0.2, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.inputContainer}
-    >
-      <Pressable
-        style={[
-          styles.inputWrapper,
-          themeStyles.ph4,
-          themeStyles.input,
-          meta.touched && meta.error ? themeStyles.errorInputBorder : {},
-          styles.transparent,
-        ]}
-        onPress={() => setShowPicker(true)}
+    <View style={styles.inputContainer}>
+      <LinearGradient
+        colors={['#151A20', '#1B2128']}
+        start={{ x: 0.2, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientContainer}
       >
-        {isEmpty ? (
-          <View style={styles.placeholderContainer}>
-            <View style={themeStyles.flex1}>
-              <Text
-                style={[
-                  themeStyles.inputText,
-                  { color: themeColors.slateGray },
-                ]}
-              >
-                {placeHolder}
-              </Text>
-            </View>
-            <View>
-              <CalendarIcon />
-            </View>
-          </View>
-        ) : (
-          <View style={styles.placeholderContainer}>
-            <View style={themeStyles.flex1}>
-              <Text
-                style={[themeStyles.inputText, { color: themeColors.text }]}
-              >
-                {field.value}
-              </Text>
-            </View>
-            <View>
-              <CalendarIcon />
-            </View>
-          </View>
-        )}
-      </Pressable>
+        <View
+          style={[
+            Platform.OS === 'ios' ? styles.inputViewIos : styles.inputView,
+            themeStyles.inputStyle,
+            styles.transparent,
+          ]}
+        >
+          <Pressable
+            style={[
+              themeStyles.ph4,
+              themeStyles.input,
+              styles.inputWrapper,
+              meta.touched && meta.error ? themeStyles.errorInputBorder : {},
+              styles.transparent,
+            ]}
+            onPress={() => setShowPicker(true)}
+          >
+            <Text
+              style={[
+                themeStyles.flex1,
+                themeStyles.textSupporting,
+                themeStyles.inputText,
+                { color: isEmpty ? themeColors.slateGray : themeColors.text },
+              ]}
+            >
+              {isEmpty ? placeholder : field.value}
+            </Text>
+
+            <CalendarIcon />
+          </Pressable>
+        </View>
+      </LinearGradient>
+
       {showPicker && (
-        <DateTimePicker
-          value={getInitialDate()}
+        <DateTimePickerModal
+          isVisible={showPicker}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleChange}
-          maximumDate={new Date()}
-          textColor={themeColors.text}
+          date={getInitialDate()}
+          onConfirm={(date) => handleChange(null, date)}
+          onCancel={() => setShowPicker(false)}
+          minimumDate={minimumDate}
+          maximumDate={maximumDate}
         />
       )}
+
       {meta.touched && meta.error && (
         <Text style={[styles.errorText, themeStyles.errorText]}>
           {meta.error}
         </Text>
       )}
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -113,24 +130,39 @@ export default DateInputField;
 const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
+    height: 70,
+    borderRadius: 16,
+  },
+  gradientContainer: {
+    borderRadius: 8,
+  },
+  transparent: {
+    backgroundColor: 'transparent',
+    borderRadius: 8,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 8,
-    height: 56,
-    position: 'relative',
-  },
-  transparent: {
-    backgroundColor: 'transparent',
-  },
-  placeholderContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingVertical: 6,
   },
   errorText: {
-    marginTop: 8,
+    marginTop: 4,
     alignSelf: 'center',
+  },
+  labelText: {
+    fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 125,
+    textAlignVertical: 'bottom',
+  },
+  inputView: {
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  inputViewIos: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
   },
 });

@@ -1,7 +1,8 @@
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import { useField } from 'formik';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  Platform,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -36,9 +37,7 @@ const InputField = ({
   placeholder,
   secureTextEntry = false,
   maskEmail = false,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   value,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onChange,
   label,
   containerStyle,
@@ -51,6 +50,7 @@ const InputField = ({
   const [isSecure, setIsSecure] = useState(secureTextEntry);
   const [isFocused, setIsFocused] = useState(false);
   const [field, meta, helpers] = useField(name);
+  const inputRef = useRef<TextInput>(null); // Create ref for TextInput
 
   const toggleSecureEntry = () => setIsSecure(!isSecure);
 
@@ -68,11 +68,9 @@ const InputField = ({
       return `${visibleUser}${maskedUser}@${domain}`;
     }
 
-    const domainName = domainParts[0];
+    const visibleDomain = domainParts[0].slice(0, 1);
+    const maskedDomain = '*'.repeat(Math.max(domainParts[0].length - 1, 2));
     const domainExt = domainParts.slice(1).join('.');
-
-    const visibleDomain = domainName.slice(0, 1);
-    const maskedDomain = '*'.repeat(Math.max(domainName.length - 1, 2));
 
     return `${visibleUser}${maskedUser}@${visibleDomain}${maskedDomain}.${domainExt}`;
   };
@@ -97,72 +95,94 @@ const InputField = ({
     return keyboardType;
   };
 
+  // Handle press on container to focus the input
+  const handleContainerPress = () => {
+    inputRef.current?.focus();
+  };
+
+  // Determine if the error text is long (e.g., more than 20 characters)
+  const isLongError = meta.touched && meta.error && meta.error.length > 20;
+
   return (
-    <View style={[styles.inputContainer, containerStyle]}>
-      <LinearGradient
-        colors={['#151A20', '#1B2128']}
-        start={{ x: 0.2, y: 0 }}
-        end={{ x: 1, y: 1 }}
+    <Pressable onPress={handleContainerPress}>
+      <View
+        style={[
+          styles.inputContainer,
+          containerStyle,
+          isLongError && styles.longErrorContainer,
+        ]}
       >
-        <View
-          style={[styles.inputView, themeStyles.inputStyle, styles.transparent]}
+        <LinearGradient
+          colors={['#151A20', '#1B2128']}
+          start={{ x: 0.2, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradientContainer}
         >
-          {label && (
-            <Text
-              style={[styles.labelText, themeStyles.themeInputPlacholderColor]}
-            >
-              {label}
-            </Text>
-          )}
           <View
             style={[
-              themeStyles.ph4,
-              themeStyles.input,
-              styles.inputWrapper,
-              meta.touched && meta.error ? themeStyles.errorInputBorder : {},
+              Platform.OS === 'ios' ? styles.inputViewIOS : styles.inputView,
+              themeStyles.inputStyle,
               styles.transparent,
             ]}
           >
-            <TextInput
-              value={displayValue}
-              onChangeText={handleTextChange}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => {
-                setIsFocused(false);
-                helpers.setTouched(true);
-              }}
-              placeholder={placeholder}
-              secureTextEntry={isSecure}
-              keyboardType={getKeyboardType()}
-              style={[
-                themeStyles.flex1,
-                themeStyles.textSupporting,
-                themeStyles.inputText,
-              ]}
-              placeholderTextColor={themeColors.slateGray}
-              autoCapitalize="none"
-            />
-            {secureTextEntry && (
-              <Pressable onPress={toggleSecureEntry} style={styles.eyeIcon}>
-                <FontAwesome6
-                  name={isSecure ? 'eye-slash' : 'eye'}
-                  size={18}
-                  color={themeColors.mintGreen}
-                />
-              </Pressable>
+            {label && (
+              <Text
+                style={[styles.labelText, themeStyles.themeInputPlacholderColor]}
+              >
+                {label}
+              </Text>
             )}
+            <View
+              style={[
+                themeStyles.ph4,
+                themeStyles.input,
+                styles.inputWrapper,
+                meta.touched && meta.error ? themeStyles.errorInputBorder : {},
+                styles.transparent,
+              ]}
+            >
+              <TextInput
+                ref={inputRef} // Attach ref to TextInput
+                value={displayValue}
+                onChangeText={handleTextChange}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => {
+                  setIsFocused(false);
+                  helpers.setTouched(true);
+                }}
+                placeholder={placeholder}
+                secureTextEntry={isSecure}
+                keyboardType={getKeyboardType()}
+                style={[
+                  themeStyles.flex1,
+                  themeStyles.textSupporting,
+                  themeStyles.inputText,
+                ]}
+                placeholderTextColor={themeColors.slateGray}
+                autoCapitalize="none"
+              />
+              {secureTextEntry && (
+                <Pressable onPress={toggleSecureEntry} style={styles.eyeIcon}>
+                  <FontAwesome6
+                    name={isSecure ? 'eye-slash' : 'eye'}
+                    size={18}
+                    color={themeColors.mintGreen}
+                  />
+                </Pressable>
+              )}
+            </View>
           </View>
-        </View>
-      </LinearGradient>
+        </LinearGradient>
 
-      {meta.touched &&
-        meta.error &&
-        (!hideRequiredMessage || !meta.error.includes('required')) && (
-          <Text style={[styles.errorText, themeStyles.errorText]}>
-            {meta.error}
-          </Text>
-        )}
-    </View>
+        {meta.touched &&
+          meta.error &&
+          (!hideRequiredMessage || !meta.error.includes('required')) && (
+            <Text style={[styles.errorText, themeStyles.errorText]}>
+              {meta.error}
+            </Text>
+          )}
+      </View>
+    </Pressable>
   );
 };
 
@@ -171,31 +191,44 @@ export default InputField;
 const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
+    height: 70, // Default height
+    borderRadius: 16,
+  },
+  longErrorContainer: {
+    height: 90, // Increased height for long error text
+  },
+  gradientContainer: {
+    borderRadius: 8,
   },
   transparent: {
     backgroundColor: 'transparent',
+    borderRadius: 8,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
     borderRadius: 8,
-    paddingHorizontal: 0,
+    paddingVertical: 6,
   },
   eyeIcon: {
     marginLeft: 10,
   },
   errorText: {
-    marginTop: 8,
+    marginTop: 4,
     alignSelf: 'center',
   },
   labelText: {
-    fontSize: 10,
-    fontFamily: Fonts.WorkSansMedium,
+    fontSize: 14,
+    fontFamily: Fonts.InterRegular,
+    fontWeight: '400',
+    lineHeight: 125,
+    textAlignVertical: 'bottom',
   },
   inputView: {
-    paddingVertical: 15,
+    borderRadius: 16,
+  },
+  inputViewIOS: {
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 8,
   },
 });

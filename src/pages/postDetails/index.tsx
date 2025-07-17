@@ -146,6 +146,8 @@ export default function PostDetailsScreen() {
         <Image
           source={{ uri: postDetails.image_url }}
           style={styles.feedImage}
+          resizeMode="contain"
+          height={300}
         />
       );
     } else {

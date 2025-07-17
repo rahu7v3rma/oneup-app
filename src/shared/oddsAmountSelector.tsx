@@ -1,3 +1,4 @@
+import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { darkColors } from '../theme/colors';
@@ -10,39 +11,67 @@ const chipAmounts = [25, 50, 100, 200];
 export const OddsAmountSelector = ({
   selected,
   onSelect,
+  toggalColor,
+  selectedCoinType,
+  currentBalance
 }: {
   selected: number;
   onSelect: (amount: number) => void;
+  toggalColor: any;
+  selectedCoinType: 'gold' | 'sweep';
+  currentBalance?: number;
 }) => {
+  
+  const getCoinImage = () => {
+    return selectedCoinType === 'sweep' 
+      ? require('../../assets/pngs/greenCoin.png')
+      : require('../../assets/pngs/goldCoin.png');
+  };
+
   return (
     <View style={chipStyles.container}>
       {chipAmounts.map((amount) => {
         const isSelected = selected === amount;
+        const isDisabled = currentBalance !== undefined && amount > currentBalance;
+        
         return (
           <TouchableOpacity
             key={amount}
-            onPress={() => onSelect(amount)}
-            style={[chipStyles.chip, isSelected && chipStyles.selectedChip]}
+            onPress={() => !isDisabled && onSelect(amount)}
+            style={[
+              chipStyles.chip, 
+              isSelected && [
+                chipStyles.selectedChip,
+                {
+                  backgroundColor: toggalColor ? '#27f07e25' : '#FFD3410A',
+                  borderColor: toggalColor ? '#27f07ebb' : '#FFD34166'
+                }
+              ],
+              isDisabled && chipStyles.disabledChip
+            ]}
+            disabled={isDisabled}
           >
             <Text
               style={[
                 chipStyles.chipText,
-                isSelected && chipStyles.selectedChipText,
+                isSelected && [
+                  chipStyles.selectedChipText,
+                  {
+                    color: toggalColor ? '#13f374d7' : '#F9C240'
+                  }
+                ],
+                isDisabled && chipStyles.disabledChipText
               ]}
             >
               {amount}
             </Text>
-            {isSelected ? (
-              <Image
-                source={require('../../assets/pngs/greenOdds.png')}
-                style={chipStyles.coinIcon}
-              />
-            ) : (
-              <Image
-                source={require('../../assets/pngs/grayCoin.png')}
-                style={chipStyles.coinIcon}
-              />
-            )}
+            <Image
+              source={getCoinImage()}
+              style={[
+                chipStyles.coinIcon,
+                isDisabled && chipStyles.disabledCoinIcon
+              ]}
+            />
           </TouchableOpacity>
         );
       })}
@@ -68,7 +97,10 @@ const chipStyles = StyleSheet.create({
     backgroundColor: darkColors.darkGreen,
     borderColor: darkColors.darkGreen,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 4,
+  },
+  disabledChip: {
+    opacity: 0.5,
   },
   chipText: {
     color: darkColors.textSupporting,
@@ -83,8 +115,15 @@ const chipStyles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: Fonts.InterSemiBold,
   },
+  disabledChipText: {
+    opacity: 0.5,
+  },
   coinIcon: {
     width: 12.5,
     height: 12.5,
+    marginLeft: 2
+  },
+  disabledCoinIcon: {
+    opacity: 0.5,
   },
 });
